@@ -1,0 +1,54 @@
+
+users docs collection;
+
+user doc = {
+    name : string,
+    // reference to the trackable collection names
+    trackables : string [...]
+}
+
+
+trackable doc collection;
+
+user_entry doc = {
+    date : date,
+    value : int
+}
+
+// one such document is in each user_entry collection
+trackable_metadata = {
+    start_date : date,
+    min_val : int,
+    max_val : int
+}
+
+date = { ? }
+
+
+
+trackable start_date docs collections;
+
+
+
+
+
+
+
+Add = {
+    + new_user(user_name)
+    trackable(user_name)
+    new_user_entry(user_name, trackable),
+}
+
+Get = {
+    all_trackables(user_name),
+    trackable_metadata(user_name, trackable),
+    entry_array(user_name, trackable),
+    n_last_entries(user_name, trackable)
+}
+
+Delete = {
+    trackable by name(user_name, trackable)
+}
+
+
