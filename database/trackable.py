@@ -12,11 +12,7 @@ class TrackableDbWrapper:
 
 
     def get_start_date(self):
-
-        timestamp =  _trackable_coll(self.coll_name).find_one({
-            'date' : { '$exists' : True }
-        })['date']
-
+        timestamp =  _trackable_metadata_doc(self.coll_name)['date']
         return datetime.fromtimestamp(timestamp)
     
     def set_start_date(self, new_date):
@@ -34,13 +30,7 @@ class TrackableDbWrapper:
                 '$set' : {'date' : timestamp
             }}, 
             upsert=True)
-        
 
-        # _trackable_coll(self.coll_name).update_one({
-        #     'date' : { '$exists' : True }
-        #     }, {
-        #         'date' : { '$set' : 'test'}
-        #             })
 
     def get_bounds(self):
         pass
@@ -51,7 +41,6 @@ class TrackableDbWrapper:
 
 
 #region helpers
-
 def _trackable_coll_name(username, name):
     '''
     get's the collection identifier for the user's trackable, 
@@ -59,10 +48,13 @@ def _trackable_coll_name(username, name):
     '''
     return username + name
 
-
 def _trackable_coll(coll_name):
     return dc.CLIENT[dc.DATABASE_NAME][coll_name]
 
+def _trackable_metadata_doc(coll_name):
+    return _trackable_coll(coll_name).find_one({
+            'date' : { '$exists' : True }
+        })
 #endregion
     
 
