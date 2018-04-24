@@ -1,4 +1,5 @@
 from .utils import DatabaseConsts as dc
+from .trackable import TrackableDbWrapper
 from pymongo import MongoClient
 from pymongo.collection import Collection
 
@@ -57,12 +58,15 @@ class UserDbWrapper:
         # string array - names of all the user's trackables 
         self.trackable_names = doc['trackables']
 
-    def get_trackable_wrapper(self, name):
+    def get_trackable_wrapper(self, name): 
         '''
         returns TrackableDbWrapper obj that manages the corresponding trackable collection
         if name is not present in user's trackablenames None is returned
         '''
-        pass
+        return None \
+            if (name not in self.trackable_names) \
+            else TrackableDbWrapper(self.name, name)
+
 
     def trackable_registered(self, name):
         return name in self.trackable_names
@@ -78,6 +82,15 @@ class UserDbWrapper:
                 'trackables' : self.trackable_names
             }
         })
+
+
+
+# class TrackableNotRegisteredError:
+#     __init__(self, name):
+#         self.name = NameError
+
+#     __str__(self):
+
 
 
 #region helpers

@@ -36,8 +36,13 @@ trackable start_date docs collections;
 
 Add = {
     + new_user(user_name)
-    trackable(user_name)
+    + trackable(user_name)
     new_user_entry(user_name, trackable, val),
+}
+
+update/set = {
+    start_date,
+    bounds
 }
 
 Get = {

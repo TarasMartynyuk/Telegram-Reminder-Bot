@@ -1,30 +1,41 @@
-from .dbprint import print_all_users
 import database.users as us
-import database.trackable as tr
+from database.trackable import TrackableDbWrapper, _trackable_coll
 from database.users import _get_users_col
 from database.utils import DatabaseConsts as dc
+from .dbprint import print_all_users, print_collection
+from .trackable_test import run_all_trackable_tests
 
 def test():
-
-    users_test()
-    pass
+    # time_test()
+    # users_test()
     # trackable_test()
+    run_all_trackable_tests()
+    pass
 
 def users_test():
     _get_users_col().remove({})
     new_us_wrapper = us.add_new_user('Taras')
 
-    print_all_users()
+    # print_all_users()
 
     # print("{0}\n".format(new_us_wrapper))
 
-    new_us_wrapper.register_trackable('jogging')
+
     print("\n")
+    
+    # print_all_users()
 
-    print_all_users()
 
 
-def trackable_test():
+
+def time_test():
+    from time import time
+    from datetime import datetime
+
+    print(datetime.utcnow().timestamp())
+    print(time())
+
+    
     pass
 
 
