@@ -2,14 +2,7 @@ from .utils import DatabaseConsts as dc, get_users_col
 from pymongo import MongoClient
 from pymongo.collection import Collection
 
-# class UserAlreadyExistsError:
-#         def __init__(self, message):
-#             self.message = message
-
-#         def __str__(self):
-#             return repr(self.message)
-
-
+#region static
 def init():
     '''
     run this before using this module any further
@@ -25,31 +18,17 @@ def add_new_user(user_name):
         trackables : [empty]
     } to db
     raises DuplicateKeyError if user with user_name already exists
+    returns the UserDbWrapper obj for created user 
     '''
-    # assert isinstance(dc.USERS_COLL_NAME, MongoClient)
-
-    new_user = {
+    new_user_doc = {
         'name' : user_name,
         'trackables' : []
     }
 
     users_coll = get_users_col()
+    users_coll.insert_one(new_user_doc)
 
-    users_coll.insert_one(new_user)
-
-
-def get_user(user_name):
-    '''
-    get's the user dict : {
-        name : 'string',
-        trackables : [string arr]
-    }
-    returns None if no doc with user_name is present in db
-    '''
-
-    users_coll = get_users_col()
-    return users_coll.find_one({'name' : user_name})
-
+    return UserDbWrapper(new_user_doc)
 
 def user_registered(user_name):
     '''
@@ -59,9 +38,40 @@ def user_registered(user_name):
 
     return _users_with_name(user_name) == 1
 
-
 def _users_with_name(user_name):
     return get_users_col().find({'name' : user_name}).count()
+#endregion
+
+class UserDbWrapper:
+
+    def __init__(self, doc):
+        # name, as in db docs
+        self.user_name = doc['name']
+        # string array - names of all the user's trackables 
+        self.trackables = doc['trackables']
+
+    def get_trackables(self):
+        '''
+        get's the list of all user's trackables:
+            [string arr]
+        returns None if such user is present in db
+        '''
+
+        users_coll = get_users_col()
+        return users_coll.find_one({'name' : self.user_name})['trackables']
+
+    
+    def get_trackable_wrapper(self, name):
+        '''
+        name must be present in self.trackables,
+        returns TrackableDbWrapper obj that manages the corresponding collection
+        '''
+        pass
+
+    def add_new_trackable(self, name):
+        pass
+
+
 
 
 

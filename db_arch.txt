@@ -41,7 +41,7 @@ Add = {
 }
 
 Get = {
-    all_trackables(user_name),
+    + all_trackables(user_name),
     trackable_metadata(user_name, trackable),
     entry_array(user_name, trackable),
     n_last_entries(user_name, trackable)
