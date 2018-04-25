@@ -10,12 +10,14 @@ test_track_name = 'jogging'
 
 def run_all_trackable_tests():
     StartDate_ReturnsNone_IfNotSet()
-    StartDate_CreatesMetadataDoc_IfNotPresent()
+    StartDate_SetsValue_IfNotPresent()
     StartDate_PutValue_EqOrig()
-    PutStartDate_Updates_PresentDoc()
-    # _set_up()
-    # print_collection(_get_users_col())
-    # print_collection(_trackable_coll(test_track_name))
+    PutStartDate_Updates_PresentValue()
+
+    print("\n")
+    GetBounds_ReturnsNone_IfNotSet()
+    GetBounds_SetsValues_IfNotPresent()
+    
 
 
 #region start_data
@@ -36,7 +38,7 @@ def StartDate_PutValue_EqOrig():
     assert orig == tr.get_start_date()
     _log_passed()
 
-def StartDate_CreatesMetadataDoc_IfNotPresent():
+def StartDate_SetsValue_IfNotPresent():
     _set_up()
     tr = _track_test_instance()
 
@@ -46,7 +48,7 @@ def StartDate_CreatesMetadataDoc_IfNotPresent():
     assert tr.get_start_date() != None
     _log_passed()
 
-def PutStartDate_Updates_PresentDoc():
+def PutStartDate_Updates_PresentValue():
     _set_up()
     tr = _track_test_instance()
     assert datetime.utcnow() == datetime.utcnow()
@@ -70,9 +72,10 @@ def GetBounds_ReturnsNone_IfNotSet():
     _set_up()
     tr = _track_test_instance()
 
-    assert tr.get_bounds is None
+    assert tr.get_bounds() is None
+    _log_passed()
 
-def  get_bounds_creates_new_metadoc_if_not_present():
+def GetBounds_SetsValues_IfNotPresent():
     _set_up()
     tr = _track_test_instance()
 
@@ -84,11 +87,15 @@ def  get_bounds_creates_new_metadoc_if_not_present():
     tr.set_bounds(orig)
 
     assert tr.get_bounds() is not None
-
+    _log_passed()
+    
+def GetBounds_UpdatesValues_IfPresent():
+    pass
 
 
 
 #endregion
+
 
 
 def _print_trackable(tr):

@@ -9,6 +9,7 @@ class TrackableDbWrapper:
         self.username = username
         self.name = name
         self.coll_name = _trackable_coll_name(username, name)
+        _insert_empty_metadata(self.coll_name)
 
 
     def get_start_date(self):
@@ -16,11 +17,11 @@ class TrackableDbWrapper:
         returns None if data not set
         '''
         metadata_doc = _get_trackable_metadata_doc(self.coll_name)
+        timestamp =  metadata_doc.get('date', None)
 
-        if metadata_doc is None:
+        if timestamp is None:
             return None
 
-        timestamp =  _get_trackable_metadata_doc(self.coll_name)['date']
         return datetime.fromtimestamp(timestamp)
     
     def set_start_date(self, new_date):
@@ -40,11 +41,9 @@ class TrackableDbWrapper:
 
     def get_bounds(self):
         '''
-        return value is dict :
-        {
-            min : val,
-            max : val
-        }
+        return value is a tuple :
+        ( min : val,
+            max : val)
         returns None if not set
         '''
         metadata_doc = _get_trackable_metadata_doc(self.coll_name)
@@ -52,16 +51,13 @@ class TrackableDbWrapper:
         if metadata_doc is None:
             return None
 
-        min = metadata_doc.get('min', None)
-        max = metadata_doc.get('max', None)
+        min = metadata_doc.get('min_val', None)
+        max = metadata_doc.get('max_val', None)
 
         if min is None or max is None:
             return None
 
-        return {
-            'min' : min,
-            'max' : max
-        }
+        return (min, max)
 
     def set_bounds(self, new_bounds):
         '''
@@ -98,6 +94,13 @@ def _get_trackable_metadata_doc(coll_name):
     return _trackable_coll(coll_name).find_one({
             'date' : { '$exists' : True }
         })
+
+def _insert_empty_metadata(coll_name):
+    _trackable_coll(coll_name).insert_one({
+        'date' : None,
+        'min' : None,
+        'max' : None
+    })
 
 def _update_trackable_metadata_doc(coll_name, update):
     _trackable_coll(coll_name).update_one({
