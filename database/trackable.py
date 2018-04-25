@@ -48,9 +48,6 @@ class TrackableDbWrapper:
         '''
         metadata_doc = _get_trackable_metadata_doc(self.coll_name)
 
-        if metadata_doc is None:
-            return None
-
         min = metadata_doc.get('min_val', None)
         max = metadata_doc.get('max_val', None)
 
@@ -59,20 +56,13 @@ class TrackableDbWrapper:
 
         return (min, max)
 
-    def set_bounds(self, new_bounds):
-        '''
-        new_bounds must be a dict :
-        {
-            min : val,
-            max : val
-        }
-        '''
+    def set_bounds(self, min, max):
 
         _update_trackable_metadata_doc(
             self.coll_name, {
                 '$set' : {
-                    'min_val' : new_bounds['min'],
-                    'max_val' : new_bounds['max']
+                    'min_val' : min,
+                    'max_val' : max
                 }
             })
 

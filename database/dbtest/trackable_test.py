@@ -17,6 +17,7 @@ def run_all_trackable_tests():
     print("\n")
     GetBounds_ReturnsNone_IfNotSet()
     GetBounds_SetsValues_IfNotPresent()
+    GetBounds_UpdatesValues_IfPresent()
     
 
 
@@ -79,19 +80,24 @@ def GetBounds_SetsValues_IfNotPresent():
     _set_up()
     tr = _track_test_instance()
 
-    orig = {
-        'min' : 1,
-        'max' : 10
-    }
-
-    tr.set_bounds(orig)
+    tr.set_bounds(1, 10)
 
     assert tr.get_bounds() is not None
     _log_passed()
     
 def GetBounds_UpdatesValues_IfPresent():
-    pass
+    _set_up()
+    tr = _track_test_instance()
 
+    tr.set_bounds(1, 10)
+
+    new_min = 42;
+    new_max = 43;
+    tr.set_bounds(new_min, new_max)
+
+    assert tr.get_bounds() == (new_min, new_max)
+    _log_passed()
+    
 
 
 #endregion
