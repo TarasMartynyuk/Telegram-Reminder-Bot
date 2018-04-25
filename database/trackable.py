@@ -12,7 +12,15 @@ class TrackableDbWrapper:
 
 
     def get_start_date(self):
-        timestamp =  _trackable_metadata_doc(self.coll_name)['date']
+        '''
+        returns None if data not set
+        '''
+        metadata_doc = _get_trackable_metadata_doc(self.coll_name)
+
+        if metadata_doc is None:
+            return None
+
+        timestamp =  _get_trackable_metadata_doc(self.coll_name)['date']
         return datetime.fromtimestamp(timestamp)
     
     def set_start_date(self, new_date):
@@ -24,19 +32,54 @@ class TrackableDbWrapper:
 
         timestamp = new_date.timestamp()
 
-        _trackable_coll(self.coll_name).update_one({
-            'date' : { '$exists' : True }
-            }, { 
+        _update_trackable_metadata_doc(
+            self.coll_name, { 
                 '$set' : {'date' : timestamp
-            }}, 
-            upsert=True)
+            }})
 
 
     def get_bounds(self):
-        pass
+        '''
+        return value is dict :
+        {
+            min : val,
+            max : val
+        }
+        returns None if not set
+        '''
+        metadata_doc = _get_trackable_metadata_doc(self.coll_name)
+
+        if metadata_doc is None:
+            return None
+
+        min = metadata_doc.get('min', None)
+        max = metadata_doc.get('max', None)
+
+        if min is None or max is None:
+            return None
+
+        return {
+            'min' : min,
+            'max' : max
+        }
 
     def set_bounds(self, new_bounds):
-        pass
+        '''
+        new_bounds must be a dict :
+        {
+            min : val,
+            max : val
+        }
+        '''
+
+        _update_trackable_metadata_doc(
+            self.coll_name, {
+                '$set' : {
+                    'min_val' : new_bounds['min'],
+                    'max_val' : new_bounds['max']
+                }
+            })
+
 
 
 
@@ -51,10 +94,16 @@ def _trackable_coll_name(username, name):
 def _trackable_coll(coll_name):
     return dc.CLIENT[dc.DATABASE_NAME][coll_name]
 
-def _trackable_metadata_doc(coll_name):
+def _get_trackable_metadata_doc(coll_name):
     return _trackable_coll(coll_name).find_one({
             'date' : { '$exists' : True }
         })
+
+def _update_trackable_metadata_doc(coll_name, update):
+    _trackable_coll(coll_name).update_one({
+        'date' : { '$exists' : True }
+        }, update, 
+        upsert=True)
 #endregion
     
 
