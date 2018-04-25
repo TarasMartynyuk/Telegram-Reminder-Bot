@@ -22,6 +22,7 @@ def run_all_trackable_tests():
     print("\n")
 
     AddEntry_AddsNewDoc()
+    AddEntry_AddsNewDoc_WithArgValues()
 
 #region start_data
 def StartDate_ReturnsNone_IfNotSet():
@@ -118,16 +119,33 @@ def AddEntry_AddsNewDoc():
     tr = _track_test_instance()
 
     count_before = _test_track_coll().count()
-    tr.add_user_entry(None, None)
+    tr.add_user_entry(datetime.utcnow(), None)
     count_after = _test_track_coll().count()
 
     assert count_after == count_before + 1
     _log_passed()
 
 def AddEntry_AddsNewDoc_WithArgValues():
-    pass
+    _set_up()
+    tr = _track_test_instance()
 
+    date = datetime.utcnow()
+    val = 42
 
+    count_before = _test_track_coll().find({
+        'date' : date,
+        'value' : val
+    }).count()
+
+    tr.add_user_entry(date, val)
+
+    count_after = _test_track_coll().find({
+        'date' : date,
+        'value' : val
+    }).count()
+
+    assert count_after == count_before + 1
+    _log_passed()
 
 #endregion
 

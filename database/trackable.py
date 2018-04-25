@@ -67,8 +67,13 @@ class TrackableDbWrapper:
     #endregion
 
     def add_user_entry(self, date, value):
+
+        if not isinstance(date, datetime):
+            raise TypeError('date must be a datetime')
+
         _trackable_coll(self.coll_name).insert_one({ 
-            'date' : 'smth'
+            'date' : date,
+            'value' : value
         })
 
 
