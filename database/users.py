@@ -1,5 +1,5 @@
 from .utils import DatabaseConsts as dc
-from .trackable import TrackableDbWrapper
+from .trackable import TrackableDbWrapper, drop_trackable_collection
 from pymongo import MongoClient
 from pymongo.collection import Collection
 
@@ -88,15 +88,11 @@ class UserDbWrapper:
         and removes it's name from this user's doc
         and this wrappers trackablenames list
         '''
-        
+        if not self.trackable_registered(name):
+            raise ValueError('trackable must be registered')
 
-# class TrackableNotRegisteredError:
-#     __init__(self, name):
-#         self.name = NameError
-
-#     __str__(self):
-
-
+        drop_trackable_collection(self.name, name)
+        self.trackable_names.remove(name)
 
 #region helpers
 
