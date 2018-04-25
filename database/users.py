@@ -9,7 +9,8 @@ def init():
     run this before using this module any further
     adds the uniqueness constraint on users field
     '''
-    _get_users_col().create_index( 'user_name', unique = True)
+    _get_users_col().drop_indexes()
+    # _get_users_col().create_index( 'user_name', unique = False)
 
 def add_new_user(user_name):
     '''
@@ -45,7 +46,8 @@ def user_registered(user_name):
     returns true if 1 or more user docs with user_name are present in db
     '''
     assert _users_with_name(user_name) <= 1
-
+    # assert 1 < 0
+    print("_users_with_name(user_name) " + str(_users_with_name(user_name)))
     return _users_with_name(user_name) == 1
 
 #endregion
