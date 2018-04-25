@@ -12,13 +12,13 @@ def run_all_trackable_tests():
     StartDate_ReturnsNone_IfNotSet()
     StartDate_SetsValue_IfNotPresent()
     StartDate_PutValue_EqOrig()
-    PutStartDate_Updates_PresentValue()
+    SetStartDate_Updates_PresentValue()
 
     print("\n")
     GetBounds_ReturnsNone_IfNotSet()
-    GetBounds_SetsValues_IfNotPresent()
-    GetBounds_UpdatesValues_IfPresent()
-    
+    SetBounds_SetsValues_IfNotPresent()
+    SetBounds_UpdatesValues_IfPresent()
+    Bounds_PutValue_EqOrig()
 
 
 #region start_data
@@ -49,7 +49,7 @@ def StartDate_SetsValue_IfNotPresent():
     assert tr.get_start_date() != None
     _log_passed()
 
-def PutStartDate_Updates_PresentValue():
+def SetStartDate_Updates_PresentValue():
     _set_up()
     tr = _track_test_instance()
     assert datetime.utcnow() == datetime.utcnow()
@@ -76,7 +76,7 @@ def GetBounds_ReturnsNone_IfNotSet():
     assert tr.get_bounds() is None
     _log_passed()
 
-def GetBounds_SetsValues_IfNotPresent():
+def SetBounds_SetsValues_IfNotPresent():
     _set_up()
     tr = _track_test_instance()
 
@@ -85,7 +85,7 @@ def GetBounds_SetsValues_IfNotPresent():
     assert tr.get_bounds() is not None
     _log_passed()
     
-def GetBounds_UpdatesValues_IfPresent():
+def SetBounds_UpdatesValues_IfPresent():
     _set_up()
     tr = _track_test_instance()
 
@@ -98,7 +98,16 @@ def GetBounds_UpdatesValues_IfPresent():
     assert tr.get_bounds() == (new_min, new_max)
     _log_passed()
     
+def Bounds_PutValue_EqOrig():
+    _set_up()
+    tr = _track_test_instance()
 
+    min, max = 42, 43
+    tr.set_bounds(min, max)
+
+    assert tr.get_bounds() == (min, max)
+    _log_passed()
+    
 
 #endregion
 
