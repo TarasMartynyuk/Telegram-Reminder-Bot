@@ -67,7 +67,6 @@ class UserDbWrapper:
             if (name not in self.trackable_names) \
             else TrackableDbWrapper(self.name, name)
 
-
     def trackable_registered(self, name):
         return name in self.trackable_names
 
@@ -83,7 +82,13 @@ class UserDbWrapper:
             }
         })
 
-
+    def delete_trackable(self, name):
+        '''
+        deletes the entire trackable's collection,
+        and removes it's name from this user's doc
+        and this wrappers trackablenames list
+        '''
+        
 
 # class TrackableNotRegisteredError:
 #     __init__(self, name):

@@ -9,7 +9,7 @@ class TrackableDbWrapper:
         self.username = username
         self.name = name
         self.coll_name = _trackable_coll_name(username, name)
-        _insert_empty_metadata(self.coll_name)
+        _create_empty_metadata_if_not_present(self.coll_name)
 
     #region metadata
     def get_start_date(self):
@@ -112,18 +112,23 @@ def _trackable_coll(coll_name):
     return dc.CLIENT[dc.DATABASE_NAME][coll_name]
 
 def _get_trackable_metadata_doc(coll_name):
-    return _trackable_coll(coll_name).find_one({
-            'date' : { '$exists' : True },
-            dc.MIN_VAL : { '$exists' : True },
-            dc.MAX_VAL : { '$exists' : True }
-        })
+    return _trackable_coll(coll_name).find_one(_metadata_query())
 
-def _insert_empty_metadata(coll_name):
-    _trackable_coll(coll_name).insert_one({
-        'date' : None,
-        dc.MIN_VAL : None,
-        dc.MAX_VAL : None
-    })
+def _create_empty_metadata_if_not_present(coll_name):
+    _trackable_coll(coll_name).update_one(_metadata_query(), {
+        '$set' : {
+            'date' : None,
+            dc.MIN_VAL : None,
+            dc.MAX_VAL : None
+        }}, 
+    upsert=True)
+
+def _metadata_query():
+    return {
+        'date' : { '$exists' : True },
+        dc.MIN_VAL : { '$exists' : True },
+        dc.MAX_VAL : { '$exists' : True }
+    }
 
 def _update_trackable_metadata_doc(coll_name, update):
     _trackable_coll(coll_name).update_one({
