@@ -11,7 +11,7 @@ class TrackableDbWrapper:
         self.coll_name = _trackable_coll_name(username, name)
         _insert_empty_metadata(self.coll_name)
 
-
+    #region metadata
     def get_start_date(self):
         '''
         returns None if data not set
@@ -38,7 +38,6 @@ class TrackableDbWrapper:
                 '$set' : {'date' : timestamp
             }})
 
-
     def get_bounds(self):
         '''
         return value is a tuple :
@@ -48,8 +47,8 @@ class TrackableDbWrapper:
         '''
         metadata_doc = _get_trackable_metadata_doc(self.coll_name)
 
-        min = metadata_doc.get('min_val', None)
-        max = metadata_doc.get('max_val', None)
+        min = metadata_doc.get(dc.MIN_VAL, None)
+        max = metadata_doc.get(dc.MAX_VAL, None)
 
         if min is None or max is None:
             return None
@@ -61,10 +60,16 @@ class TrackableDbWrapper:
         _update_trackable_metadata_doc(
             self.coll_name, {
                 '$set' : {
-                    'min_val' : min,
-                    'max_val' : max
+                    dc.MIN_VAL : min,
+                    dc.MAX_VAL : max
                 }
             })
+    #endregion
+
+    def add_user_entry(self, date, value):
+        _trackable_coll(self.coll_name).insert_one({ 
+            'date' : 'smth'
+        })
 
 
 
@@ -82,14 +87,16 @@ def _trackable_coll(coll_name):
 
 def _get_trackable_metadata_doc(coll_name):
     return _trackable_coll(coll_name).find_one({
-            'date' : { '$exists' : True }
+            'date' : { '$exists' : True },
+            dc.MIN_VAL : { '$exists' : True },
+            dc.MAX_VAL : { '$exists' : True }
         })
 
 def _insert_empty_metadata(coll_name):
     _trackable_coll(coll_name).insert_one({
         'date' : None,
-        'min' : None,
-        'max' : None
+        dc.MIN_VAL : None,
+        dc.MAX_VAL : None
     })
 
 def _update_trackable_metadata_doc(coll_name, update):

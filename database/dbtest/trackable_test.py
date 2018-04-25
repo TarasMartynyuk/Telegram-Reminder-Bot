@@ -13,13 +13,15 @@ def run_all_trackable_tests():
     StartDate_SetsValue_IfNotPresent()
     StartDate_PutValue_EqOrig()
     SetStartDate_Updates_PresentValue()
-
     print("\n")
+
     GetBounds_ReturnsNone_IfNotSet()
     SetBounds_SetsValues_IfNotPresent()
     SetBounds_UpdatesValues_IfPresent()
     Bounds_PutValue_EqOrig()
+    print("\n")
 
+    AddEntry_AddsNewDoc()
 
 #region start_data
 def StartDate_ReturnsNone_IfNotSet():
@@ -68,7 +70,6 @@ def SetStartDate_Updates_PresentValue():
 #endregion
 
 #region bounds
-
 def GetBounds_ReturnsNone_IfNotSet():
     _set_up()
     tr = _track_test_instance()
@@ -111,14 +112,30 @@ def Bounds_PutValue_EqOrig():
 
 #endregion
 
+#region entries
+def AddEntry_AddsNewDoc():
+    _set_up()
+    tr = _track_test_instance()
+
+    count_before = _test_track_coll().count()
+    tr.add_user_entry(None, None)
+    count_after = _test_track_coll().count()
+
+    assert count_after == count_before + 1
+    _log_passed()
+
+def AddEntry_AddsNewDoc_WithArgValues():
+    pass
 
 
-def _print_trackable(tr):
-    print_collection(_trackable_coll(tr.coll_name))
+
+#endregion
+
+
 
 def _set_up():
     _get_users_col().remove({})
-    _trackable_coll(_trackable_coll_name(test_username, test_track_name)).remove({})
+    _test_track_coll().remove({})
 
     new_us_wrapper = add_new_user(test_username)
     new_us_wrapper.register_trackable(test_track_name)
@@ -126,6 +143,8 @@ def _set_up():
 def _track_test_instance():
     return get_user_wrapper(test_username).get_trackable_wrapper(test_track_name)
 
-
 def _log_passed():
     print('passed test: {0}'.format(stack()[1][3]))  
+
+def _test_track_coll():
+    return  _trackable_coll(_trackable_coll_name(test_username, test_track_name))
