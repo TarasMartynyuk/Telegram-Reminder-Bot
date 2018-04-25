@@ -22,7 +22,10 @@ def run_all_trackable_tests():
     print("\n")
 
     AddEntry_AddsNewDoc()
-    AddEntry_AddsNewDoc_WithArgValues()
+    GetEntries_ReturnsAllNonMetadataDocs()
+    GetNLastEntries_ReturnsNResults()
+    GetNLastEntries_ResultSortedDescending()
+    AddEntry_ExistsDoc_WithArgValues()
 
 #region start_data
 def StartDate_ReturnsNone_IfNotSet():
@@ -75,6 +78,7 @@ def GetBounds_ReturnsNone_IfNotSet():
     _set_up()
     tr = _track_test_instance()
 
+    tr.add_user_entry(datetime.utcnow(), 42)
     assert tr.get_bounds() is None
     _log_passed()
 
@@ -125,30 +129,82 @@ def AddEntry_AddsNewDoc():
     assert count_after == count_before + 1
     _log_passed()
 
-def AddEntry_AddsNewDoc_WithArgValues():
+# def AddEntry_ExistsDoc_WithArgValues():
+#     _set_up()
+#     tr = _track_test_instance()
+
+#     date = datetime.utcnow()
+#     val = 42
+
+#     count_before = _test_track_coll().find({
+#         'date' : date,
+#         'value' : val
+#     }).count()
+
+#     tr.add_user_entry(date, val)
+
+#     count_after = _test_track_coll().find({
+#         'date' : date,
+#         'value' : val
+#     }).count()
+
+#     assert count_after == count_before + 1
+#     _log_passed()sN
+
+def GetEntries_ReturnsAllNonMetadataDocs():
+    _set_up()
+    tr = _track_test_instance()
+    tr.add_user_entry(datetime.utcnow(), 42)
+    tr.add_user_entry(datetime.utcnow(), 42)
+    
+    count = _test_track_coll().find({}).count() - 1 # -1 for metadata
+
+    entries = tr.get_user_entries()
+
+    assert len(entries) == count
+    _log_passed()
+
+def GetNLastEntries_ReturnsNResults():
+    _set_up()
+    tr = _track_test_instance()
+    tr.add_user_entry(datetime.utcnow(), 42)
+    tr.add_user_entry(datetime.utcnow(), 42)
+    tr.add_user_entry(datetime.utcnow(), 42)
+    
+
+    entries = tr.get_user_entries(2)
+
+    assert len(entries) == 2
+    _log_passed()
+
+def GetNLastEntries_ResultSortedDescending():
+    _set_up()
+    tr = _track_test_instance()
+    tr.add_user_entry(datetime.utcnow(), 42)
+    tr.add_user_entry(datetime.utcnow(), 42)
+    tr.add_user_entry(datetime.utcnow(), 42)
+    
+
+    entries = tr.get_user_entries(2)
+
+    assert sorted([entry['date'] for entry in entries], reverse=True)
+    _log_passed()
+
+def AddEntry_ExistsDoc_WithArgValues():
     _set_up()
     tr = _track_test_instance()
 
-    date = datetime.utcnow()
+    date = datetime.fromtimestamp(1000000)
     val = 42
-
-    count_before = _test_track_coll().find({
-        'date' : date,
-        'value' : val
-    }).count()
-
     tr.add_user_entry(date, val)
 
-    count_after = _test_track_coll().find({
+    assert {
         'date' : date,
         'value' : val
-    }).count()
-
-    assert count_after == count_before + 1
+    } in tr.get_user_entries()
     _log_passed()
 
 #endregion
-
 
 
 def _set_up():

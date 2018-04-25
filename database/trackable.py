@@ -1,5 +1,5 @@
 from .utils import DatabaseConsts as dc
-from pymongo import MongoClient
+import pymongo
 from pymongo.collection import Collection 
 from datetime import datetime
 
@@ -72,10 +72,31 @@ class TrackableDbWrapper:
             raise TypeError('date must be a datetime')
 
         _trackable_coll(self.coll_name).insert_one({ 
-            'date' : date,
+            'date' : date.timestamp(),
             'value' : value
         })
 
+    # TODO: remove querying for n-1 elems!
+    # mb use separate col for metadata?
+    def get_user_entries(self, n_last_to_take=0):
+        '''
+        returns list of {
+            'date' : datetime,
+            'value' : int
+        }
+        '''
+        all_entries = _trackable_coll(self.coll_name).find({
+            # 'value' : { '$exists' : True }
+            dc.MAX_VAL : { '$exists' : False }
+        }, )
+
+        n_last = all_entries.sort("date", pymongo.DESCENDING). \
+            limit(n_last_to_take)
+
+        return [{
+            'date' : datetime.fromtimestamp(entry['date']),
+            'value' : entry['value']
+        } for entry in n_last ]
 
 
 
