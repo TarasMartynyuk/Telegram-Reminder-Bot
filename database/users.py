@@ -103,7 +103,6 @@ class UserDbWrapper:
 def _get_users_col():
     return dc.CLIENT[dc.DATABASE_NAME][dc.USERS_COLL_NAME]
 
-
 def _users_with_name(user_name):
     return _get_users_col().find({'name' : user_name}).count()
 #endregion

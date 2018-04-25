@@ -1,8 +1,9 @@
 from database.utils import DatabaseConsts as dc
 from datetime import datetime
 from inspect import stack
-from database.trackable import TrackableDbWrapper, _trackable_coll, _trackable_coll_name
+from database.trackable import TrackableDbWrapper, _trackable_coll_name
 from database.users import _get_users_col, add_new_user, get_user_wrapper
+from database.utils import coll
 from .dbprint import print_collection
 
 test_username = 'Taras'
@@ -129,28 +130,6 @@ def AddEntry_AddsNewDoc():
     assert count_after == count_before + 1
     _log_passed()
 
-# def AddEntry_ExistsDoc_WithArgValues():
-#     _set_up()
-#     tr = _track_test_instance()
-
-#     date = datetime.utcnow()
-#     val = 42
-
-#     count_before = _test_track_coll().find({
-#         'date' : date,
-#         'value' : val
-#     }).count()
-
-#     tr.add_user_entry(date, val)
-
-#     count_after = _test_track_coll().find({
-#         'date' : date,
-#         'value' : val
-#     }).count()
-
-#     assert count_after == count_before + 1
-#     _log_passed()sN
-
 def GetEntries_ReturnsAllNonMetadataDocs():
     _set_up()
     tr = _track_test_instance()
@@ -221,4 +200,4 @@ def _log_passed():
     print('passed test: {0}'.format(stack()[1][3]))  
 
 def _test_track_coll():
-    return  _trackable_coll(_trackable_coll_name(test_username, test_track_name))
+    return  coll(_trackable_coll_name(test_username, test_track_name))

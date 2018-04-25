@@ -1,7 +1,10 @@
-from .utils import DatabaseConsts as dc
+from .utils import DatabaseConsts as dc, coll
 import pymongo
 from pymongo.collection import Collection 
 from datetime import datetime
+
+def drop_trackable_collection(username, trackable_name):
+    coll(_trackable_coll_name(username, trackable_name)).drop()
 
 class TrackableDbWrapper:
 
@@ -71,7 +74,7 @@ class TrackableDbWrapper:
         if not isinstance(date, datetime):
             raise TypeError('date must be a datetime')
 
-        _trackable_coll(self.coll_name).insert_one({ 
+        coll(self.coll_name).insert_one({ 
             'date' : date.timestamp(),
             'value' : value
         })
@@ -85,7 +88,7 @@ class TrackableDbWrapper:
             'value' : int
         }
         '''
-        all_entries = _trackable_coll(self.coll_name).find({
+        all_entries = coll(self.coll_name).find({
             # 'value' : { '$exists' : True }
             dc.MAX_VAL : { '$exists' : False }
         }, )
@@ -108,14 +111,11 @@ def _trackable_coll_name(username, name):
     '''
     return username + name
 
-def _trackable_coll(coll_name):
-    return dc.CLIENT[dc.DATABASE_NAME][coll_name]
-
 def _get_trackable_metadata_doc(coll_name):
-    return _trackable_coll(coll_name).find_one(_metadata_query())
+    return coll(coll_name).find_one(_metadata_query())
 
 def _create_empty_metadata_if_not_present(coll_name):
-    _trackable_coll(coll_name).update_one(_metadata_query(), {
+    coll(coll_name).update_one(_metadata_query(), {
         '$set' : {
             'date' : None,
             dc.MIN_VAL : None,
@@ -131,9 +131,8 @@ def _metadata_query():
     }
 
 def _update_trackable_metadata_doc(coll_name, update):
-    _trackable_coll(coll_name).update_one({
-        'date' : { '$exists' : True }
-        }, update, 
+    coll(coll_name).update_one(
+        _metadata_query(), update,
         upsert=True)
 #endregion
     

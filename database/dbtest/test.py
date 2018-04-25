@@ -1,5 +1,5 @@
 import database.users as us
-from database.trackable import TrackableDbWrapper, _trackable_coll
+from database.trackable import TrackableDbWrapper
 from database.users import _get_users_col
 from database.utils import DatabaseConsts as dc
 from .dbprint import print_all_users, print_collection
