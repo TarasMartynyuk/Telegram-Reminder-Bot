@@ -46,8 +46,6 @@ def user_registered(user_name):
     returns true if 1 or more user docs with user_name are present in db
     '''
     assert _users_with_name(user_name) <= 1
-    # assert 1 < 0
-    print("_users_with_name(user_name) " + str(_users_with_name(user_name)))
     return _users_with_name(user_name) == 1
 
 #endregion

@@ -19,11 +19,12 @@ from datetime import datetime, timedelta
 from telegram import ReplyKeyboardMarkup
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters, RegexHandler,
                           ConversationHandler)
-
 import logging
 import re
 
 from database.users import get_user_wrapper, add_new_user, user_registered, init
+from .trackables import add_trackable_conv, print_all_trackables, _get_all_trackables
+from .utils import user_id_from_update
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -31,8 +32,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
-CHOOSING, PROP_ADDED, ADD_PROP_NAME, ADD_LOWER_BOUND, ADD_UPPER_BOUND, \
-SHOW_STATS, START_REPORTING, ASK_FOR_TRACKABLE_REPORT, GET_TRACKABLE_REPORT = range(9)
+CHOOSING, PROP_ADDED, SHOW_STATS, START_REPORTING, ASK_FOR_TRACKABLE_REPORT, GET_TRACKABLE_REPORT = range(6)
 
 stat_img_filename = '/Users/oleg/PycharmProjects/LifeStatsBot/fig.png'
 str_add_new = 'add new thing you want to track'
@@ -40,34 +40,7 @@ str_report = 'report today\'s performance'
 str_stat = 'see statistics'
 
 
-# options_keyboard = [
-#     [str_add_new],
-#     [str_report],
-#     [str_stat]
-# ]
-#
-# markup = ReplyKeyboardMarkup(options_keyboard, one_time_keyboard=True)
-
-
 # region stubs
-
-def user_exists(user_name):
-    result = user_registered(user_name)
-    print("does {} exist??{}".format(user_name, result))
-    
-    return False or result
-
-
-# def add_new_user(user_name):
-#     logger.info("trying to add new user");
-
-#     return
-
-
-def add_trackable(user_name, trackable):
-    user = get_user_wrapper(user_name)
-    user.register_trackable(trackable)
-    return
 
 def add_new_user_entry(user_name, trackable_name, val):
     logger.info("adding entry for %s : %s", trackable_name, str(val))
@@ -75,14 +48,6 @@ def add_new_user_entry(user_name, trackable_name, val):
     trackable = user.get_trackable_wrapper(trackable_name)
     trackable.add_user_entry(datetime.now(), val)
     return
-
-
-def get_all_trackables(user_name):
-    logger.info("getting all trackables")
-    user = get_user_wrapper(str(user_name))
-    return user.trackable_names
-    # return ["learning", "reading"]
-
 
 def get_trackable_metadata(user_name, trackable):
     return {
@@ -97,7 +62,6 @@ def get_trackable_metadata(user_name, trackable):
             "start_date": datetime.date(2010, 5, 22)
         }
     }[trackable]
-
 
 def get_n_last_entries(user_name, trackable_name, n):
     user = get_user_wrapper(user_name)
@@ -136,16 +100,9 @@ def get_n_last_entries(user_name, trackable_name, n):
     #     ]
     # }[trackable]
 
-
 def delete_trackable_by_name(user_name, trackable):
     return
-
 # endregion
-
-
-def user_id_from_update(update):
-    return str(update.message.chat.id)
-
 
 def _start(bot, update):
     update.message.reply_text(
@@ -156,41 +113,18 @@ def _start(bot, update):
     )
 
     user_id = user_id_from_update(update)
-    if not user_exists(str(user_id)):
-        logger.info("user doesnt exist!!")
+    # if not user_exists(str(user_id)):
+    #     logger.info("user doesnt exist!!")
+    #     add_new_user(str(user_id))
+
+    if not user_registered(str(user_id)):
+        print("user doesnt exist!!")
         add_new_user(str(user_id))
+    else:
+        print('user exists')
+    
 
     return CHOOSING
-
-
-# region add_new
-def add_new(bot, update, user_data):
-    update.message.reply_text("Ok. What it is you want to measure?"
-                              " Write anything you want, you can change that later")
-    return ADD_PROP_NAME
-
-def add_lower_bound(bot, update, user_data):
-    user_data['prop_name'] = update.message.text
-    update.message.reply_text(
-        "Got it. You will measure in some units. What is the lowest value of that unit? For example, 1")
-    return ADD_LOWER_BOUND
-
-def add_upper_bound(bot, update, user_data):
-    user_data['lower_bound'] = update.message.text
-    update.message.reply_text("And what is the highest value? Write 0 for unbound values.")
-    return ADD_UPPER_BOUND
-
-def prop_added(bot, update, user_data):
-    user_data['upper_bound'] = update.message.text
-    print(user_data)
-    update.message.reply_text(
-        "Great! You just started tracking {}. At the evening, I'll ask you how good you did today."
-        " Then after a while, you can see statistics of {}!"
-        .format(user_data['prop_name'], user_data['prop_name']))
-
-    add_trackable(user_id_from_update(update), user_data['prop_name'])
-    return ConversationHandler.END
-# endregion
 
 # region show stats
 def trackable_and_date_tokens(tokens):
@@ -270,7 +204,7 @@ def show_stats_request(bot, update, user_data):
 #region report update sss
 
 def start_reporting(bot, update, user_data):
-    user_data['trackables'] = get_all_trackables(user_id_from_update(update))
+    user_data['trackables'] = _get_all_trackables(user_id_from_update(update))
     if len(user_data['trackables']) > 0:
         update.message.reply_text("Oh, wonderful!")
         user_data['index_of_curr_trackable'] = 0
@@ -302,8 +236,7 @@ def get_trackable_report(bot, update, user_data):
 
 #endregion
 
-def trackables_command(bot, update):
-    update.message.reply_text('\n'.join(get_all_trackables(user_id_from_update(update))))
+
 
 def done(bot, update, user_data):
     if 'choice' in user_data:
@@ -335,29 +268,7 @@ def start():
 
     dp.add_handler(CommandHandler('start', _start))
 
-    add_trackable_conversation = ConversationHandler(
-        entry_points=[CommandHandler('add_trackable', add_new, pass_user_data=True)],
-        states={
-            ADD_PROP_NAME: [
-                RegexHandler('.+',
-                             add_lower_bound,
-                             pass_user_data=True),
-            ],
-            ADD_LOWER_BOUND: [
-                RegexHandler('\\d+',
-                             add_upper_bound,
-                             pass_user_data=True),
-            ],
-            ADD_UPPER_BOUND: [
-                RegexHandler('\\d+',
-                             prop_added,
-                             pass_user_data=True),
-            ],
-        },
-
-        fallbacks=[RegexHandler('^Done$', done, pass_user_data=True)]
-    )
-    dp.add_handler(add_trackable_conversation)
+    dp.add_handler(add_trackable_conv())
     
     start_reporting_conversation = ConversationHandler(
         entry_points=[CommandHandler('report', start_reporting, pass_user_data=True)],
@@ -381,7 +292,7 @@ def start():
     )
     dp.add_handler(show_stats_conversation)
 
-    dp.add_handler(CommandHandler('trackables', trackables_command))
+    dp.add_handler(CommandHandler('trackables', print_all_trackables))
     dp.add_handler(CommandHandler('stats', show_stats_request, pass_user_data=True))
 
     # log all errors
