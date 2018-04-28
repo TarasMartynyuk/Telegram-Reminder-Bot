@@ -17,11 +17,8 @@ def set_up():
 def track_test_instance():
     return get_user_wrapper(test_username).get_trackable_wrapper(test_track_name)
 
-
-
 def log_passed():
     print('passed test: {0}'.format(stack()[1][3])) 
-
  
 def test_track_coll():
     return  coll(_trackable_coll_name(test_username, test_track_name))

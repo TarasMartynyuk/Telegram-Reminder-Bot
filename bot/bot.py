@@ -15,23 +15,15 @@ Press Ctrl-C on the command line or send a signal to the process to stop the
 bot.
 """
 import os
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 from telegram import ReplyKeyboardMarkup
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters, RegexHandler,
                           ConversationHandler)
-
-
-# import matplotlib.pyplot as plt
-# import matplotlib
-
 
 import logging
 import re
 
 from database.users import get_user_wrapper, add_new_user, user_registered, init
-# from database.trackable import TrackableDbWrapper
-# from database.dbtest.dprint import print_all_users
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -76,7 +68,6 @@ def add_trackable(user_name, trackable):
     user = get_user_wrapper(user_name)
     user.register_trackable(trackable)
     return
-
 
 def add_new_user_entry(user_name, trackable_name, val):
     logger.info("adding entry for %s : %s", trackable_name, str(val))
@@ -156,7 +147,7 @@ def user_id_from_update(update):
     return str(update.message.chat.id)
 
 
-def start(bot, update):
+def _start(bot, update):
     update.message.reply_text(
         "Hi! This bot helps you track and measure your life. "
         "telegram To get started, send /add_trackable. If you want to get ideas "
@@ -178,19 +169,16 @@ def add_new(bot, update, user_data):
                               " Write anything you want, you can change that later")
     return ADD_PROP_NAME
 
-
 def add_lower_bound(bot, update, user_data):
     user_data['prop_name'] = update.message.text
     update.message.reply_text(
         "Got it. You will measure in some units. What is the lowest value of that unit? For example, 1")
     return ADD_LOWER_BOUND
 
-
 def add_upper_bound(bot, update, user_data):
     user_data['lower_bound'] = update.message.text
     update.message.reply_text("And what is the highest value? Write 0 for unbound values.")
     return ADD_UPPER_BOUND
-
 
 def prop_added(bot, update, user_data):
     user_data['upper_bound'] = update.message.text
@@ -202,12 +190,9 @@ def prop_added(bot, update, user_data):
 
     add_trackable(user_id_from_update(update), user_data['prop_name'])
     return ConversationHandler.END
-
-
 # endregion
 
 # region show stats
-
 def trackable_and_date_tokens(tokens):
     if len(tokens) >= 2:
         if len(tokens) >= 4:
@@ -221,7 +206,6 @@ def trackable_and_date_tokens(tokens):
             return tokens[1:], ['1', 'week']
     else:
         return None, None
-
 
 def date_back(number_of, time_unit):
     if time_unit == 'week':
@@ -239,7 +223,6 @@ def show_stats(bot, update, user_data, req):
     update.message.reply_text([d['value'] for d in get_n_last_entries(user_id_from_update(update), req['trackable'], int(req['entry_n']))])
     # save_stats_img([entry['val'] for entry in get_n_last_entries(user_id_from_update(update), req['trackable'], req['entry_n'])])
     # bot.send_photo(chat_id=update.message.chat.id, photo=open(stat_img_filename, 'rb'))
-
 
 def show_stats_request(bot, update, user_data):
     '''
@@ -278,13 +261,10 @@ def show_stats_request(bot, update, user_data):
         else:
             update.message.reply_text("there is no trackable {}".format(mb_trackable))
 
-
-def save_stats_img(nums):
-    matplotlib.style.use('seaborn')
-    plt.plot(range(len(nums)), nums)
-    plt.gcf().savefig(stat_img_filename)
-
-
+# def save_stats_img(nums):
+#     matplotlib.style.use('seaborn')
+#     plt.plot(range(len(nums)), nums)
+#     plt.gcf().savefig(stat_img_filename)
 # endregion
 
 #region report update sss
@@ -322,7 +302,6 @@ def get_trackable_report(bot, update, user_data):
 
 #endregion
 
-
 def trackables_command(bot, update):
     update.message.reply_text('\n'.join(get_all_trackables(user_id_from_update(update))))
 
@@ -335,13 +314,12 @@ def done(bot, update, user_data):
     user_data.clear()
     return ConversationHandler.END
 
-
 def error(bot, update, error):
     """Log Errors caused by Updates."""
     logger.warning('Update "%s" caused error "%s"', update, error)
 
 
-def main():
+def start():
     init()
 # Set these variable to the appropriate values
     TOKEN = "565922953:AAHLDSH9RcfKD2i9swjrgAL8_joW0ashCkU"
@@ -354,6 +332,8 @@ def main():
     # updater = Updater("552042340:AAHtT3JtHDySdLFr59-jkRNZUP_LSOB-WDE")
     updater = Updater(TOKEN)
     dp = updater.dispatcher
+
+    dp.add_handler(CommandHandler('start', _start))
 
     add_trackable_conversation = ConversationHandler(
         entry_points=[CommandHandler('add_trackable', add_new, pass_user_data=True)],
@@ -377,7 +357,8 @@ def main():
 
         fallbacks=[RegexHandler('^Done$', done, pass_user_data=True)]
     )
-
+    dp.add_handler(add_trackable_conversation)
+    
     start_reporting_conversation = ConversationHandler(
         entry_points=[CommandHandler('report', start_reporting, pass_user_data=True)],
         states={
@@ -389,6 +370,7 @@ def main():
         },
         fallbacks=[RegexHandler('^Done$', done, pass_user_data=True)]
     )
+    dp.add_handler(start_reporting_conversation)
 
     show_stats_conversation = ConversationHandler(
         entry_points=[CommandHandler('stats', show_stats_request, pass_user_data=True)],
@@ -397,12 +379,9 @@ def main():
         },
         fallbacks=[RegexHandler('^Done$', done, pass_user_data=True)]
     )
+    dp.add_handler(show_stats_conversation)
 
-    dp.add_handler(CommandHandler('start', start))
-    dp.add_handler(start_reporting_conversation)
-    dp.add_handler(add_trackable_conversation)
     dp.add_handler(CommandHandler('trackables', trackables_command))
-    # dp.add_handler(show_stats_conversation)
     dp.add_handler(CommandHandler('stats', show_stats_request, pass_user_data=True))
 
     # log all errors
@@ -416,13 +395,9 @@ def main():
     #                       port=int(PORT),
     #                       url_path=TOKEN)
     # updater.bot.setWebhook("https://{}.herokuapp.com/{}".format(NAME, TOKEN))
-    
 
     # Run the bot until you press Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
     # start_polling() is non-blocking and will stop the bot gracefully.
     updater.idle()
 
-
-if __name__ == '__main__':
-    main()
