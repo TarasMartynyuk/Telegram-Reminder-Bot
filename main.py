@@ -3,10 +3,11 @@ from database.dbtest.test import test
 from database.dbtest.dbprint import *
 import database.users as us
 
-# def main():
+def main():
     # test()
-us.init()
-print_all_users()
+    # us.init()
+    print_all_users()
+    # print_all_docs()
 
-# if __name__ == "__main__":
-#     main()print_all_users
+if __name__ == "__main__":
+    main()

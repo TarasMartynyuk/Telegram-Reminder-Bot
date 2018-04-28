@@ -30,10 +30,6 @@ trackable start_date docs collections;
 
 
 
-
-
-
-
 Add = {
     + new_user(user_name)
     + trackable(user_name)
@@ -57,3 +53,7 @@ Delete = {
 }
 
 
+- output specific errors when time is denoted not correctly
+- tell user how to denote time
+- output specific errors when out of bounds
+- fix stats time periods

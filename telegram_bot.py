@@ -29,10 +29,9 @@ from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters, Rege
 import logging
 import re
 
-from database.users import *
-from database.trackable import *
-init()
-
+from database.users import get_user_wrapper, add_new_user, user_registered, init
+# from database.trackable import TrackableDbWrapper
+# from database.dbtest.dprint import print_all_users
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -61,78 +60,90 @@ str_stat = 'see statistics'
 # region stubs
 
 def user_exists(user_name):
-    return user_registered(user_name)
+    result = user_registered(user_name)
+    print("does {} exist??{}".format(user_name, result))
+    
+    return False or result
 
 
 # def add_new_user(user_name):
 #     logger.info("trying to add new user");
+
 #     return
 
 
-# def add_trackable(user_name, trackable):
-#     logger.info("added %s for %s", trackable, user_name)
-#     return
-
-
-def add_new_user_entry(user_name, trackable, val):
-    logger.info("adding entry for %s : %s", trackable, str(val))
+def add_trackable(user_name, trackable):
+    user = get_user_wrapper(user_name)
+    user.register_trackable(trackable)
     return
 
 
-# def get_all_trackables(user_name):
-#     logger.info("getting all trackables")
-#     return ["learning", "reading"]
+def add_new_user_entry(user_name, trackable_name, val):
+    logger.info("adding entry for %s : %s", trackable_name, str(val))
+    user = get_user_wrapper(user_name)
+    trackable = user.get_trackable_wrapper(trackable_name)
+    trackable.add_user_entry(datetime.now(), val)
+    return
 
 
-# def get_trackable_metadata(user_name, trackable):
-#     return {
-#         "learning": {
-#             "lower_bound": 1,
-#             "upper_bound": 10,
-#             "start_date": datetime.date(2010, 5, 24)
-#         },
-#         "reading": {
-#             "lower_bound": 0,
-#             "upper_bound": 0,
-#             "start_date": datetime.date(2010, 5, 22)
-#         }
-#     }[trackable]
+def get_all_trackables(user_name):
+    logger.info("getting all trackables")
+    user = get_user_wrapper(str(user_name))
+    return user.trackable_names
+    # return ["learning", "reading"]
 
 
-def get_n_last_entries(user_name, trackable, n):
+def get_trackable_metadata(user_name, trackable):
     return {
-        "learning": [
-            {
-                "date": datetime(2018, 4, 17),
-                "val": 1
-            },
-            {
-                "date": datetime(2018, 4, 18),
-                "val": 2
-            },
-            {
-                "date": datetime(2018, 4, 19),
-                "val": 3
-            },
-            {
-                "date": datetime(2018, 4, 20),
-                "val": 2
-            },
-            {
-                "date": datetime(2018, 4, 21),
-                "val": 5
-            },
-            {
-                "date": datetime(2018, 4, 22),
-                "val": 7
-            },
-            {
-                "date": datetime(2018, 4, 23),
-                "val": 3
-            }
-        ]
+        "learning": {
+            "lower_bound": 1,
+            "upper_bound": 10,
+            "start_date": datetime.date(2010, 5, 24)
+        },
+        "reading": {
+            "lower_bound": 0,
+            "upper_bound": 0,
+            "start_date": datetime.date(2010, 5, 22)
+        }
     }[trackable]
 
+
+def get_n_last_entries(user_name, trackable_name, n):
+    user = get_user_wrapper(user_name)
+    trackable = user.get_trackable_wrapper(trackable_name)
+    return trackable.get_user_entries(n)
+    # return {
+    #     "learning": [
+    #         {
+    #             "date": datetime(2018, 4, 17),
+    #             "val": 1
+    #         },
+    #         {
+    #             "date": datetime(2018, 4, 18),
+    #             "val": 2
+    #         },
+    #         {
+    #             "date": datetime(2018, 4, 19),
+    #             "val": 3
+    #         },
+    #         {
+    #             "date": datetime(2018, 4, 20),
+    #             "val": 2
+    #         },
+    #         {
+    #             "date": datetime(2018, 4, 21),
+    #             "val": 5
+    #         },
+    #         {
+    #             "date": datetime(2018, 4, 22),
+    #             "val": 7
+    #         },
+    #         {
+    #             "date": datetime(2018, 4, 23),
+    #             "val": 3
+    #         }
+    #     ]
+    # }[trackable]
 
 
 def delete_trackable_by_name(user_name, trackable):
@@ -142,7 +153,7 @@ def delete_trackable_by_name(user_name, trackable):
 
 
 def user_id_from_update(update):
-    return update.message.chat.id
+    return str(update.message.chat.id)
 
 
 def start(bot, update):
@@ -154,8 +165,9 @@ def start(bot, update):
     )
 
     user_id = user_id_from_update(update)
-    if not user_exists(user_id):
-        add_new_user(user_id)
+    if not user_exists(str(user_id)):
+        logger.info("user doesnt exist!!")
+        add_new_user(str(user_id))
 
     return CHOOSING
 
@@ -188,17 +200,7 @@ def prop_added(bot, update, user_data):
         " Then after a while, you can see statistics of {}!"
         .format(user_data['prop_name'], user_data['prop_name']))
 
-    # add_trackable(user_id_from_update(update), user_data['prop_name'])
-    user = get_user_wrapper(user_id_from_update(update))
-    user.register_trackable(user_data['prop_name'])
-    trackable = user.get_trackable_wrapper(user_data['prop_name'])
-    trackable.set_start_date(datetime.now())
-    trackable.set_bounds({
-        "min": user_data['lower_bound'],
-        "max": user_data['upper_bound']
-    })
-    # TODO: anything else?
-
+    add_trackable(user_id_from_update(update), user_data['prop_name'])
     return ConversationHandler.END
 
 
@@ -210,7 +212,7 @@ def trackable_and_date_tokens(tokens):
     if len(tokens) >= 2:
         if len(tokens) >= 4:
             mb_number_of, mb_time_units = tokens[-2:]
-            if re.match(r"^[1-9]\d*$", mb_number_of) and re.match("^(week|month|day|year)$", mb_time_units):
+            if re.match("^[1-9]\d*$", mb_number_of) and re.match("^(week|month|day|year)$", mb_time_units):
                 # last two tokens are number_of time_units, so
                 return tokens[1:-2], tokens[-2:]
             else:
@@ -229,15 +231,14 @@ def date_back(number_of, time_unit):
     if time_unit == 'month':
         return datetime.now() - timedelta(months=int(number_of)), number_of * 30
     if time_unit == 'year':
-        return datetime.now() - timedelta(years=int(number_of)), number_of * 365
+        return datetime.now() - timedelta(months=12 * int( number_of)), number_of * 365
     raise KeyError('{} is not day, week, etc.'.format(time_unit))
 
 def show_stats(bot, update, user_data, req):
     update.message.reply_text("Stats: from {} to {}".format(req['from'], req['to']))
-    print(get_n_last_entries(user_id_from_update(update), req['trackable'], req['entry_n']))
+    update.message.reply_text([d['value'] for d in get_n_last_entries(user_id_from_update(update), req['trackable'], int(req['entry_n']))])
     # save_stats_img([entry['val'] for entry in get_n_last_entries(user_id_from_update(update), req['trackable'], req['entry_n'])])
     # bot.send_photo(chat_id=update.message.chat.id, photo=open(stat_img_filename, 'rb'))
-    # TODO: install matplotlib or sth
 
 
 def show_stats_request(bot, update, user_data):
@@ -258,7 +259,6 @@ def show_stats_request(bot, update, user_data):
     # /report
     # /help write some basic tutorial-like stuff
 
-    user = get_user_wrapper(user_id_from_update(update))
     tokens = update.message.text.split()
     if len(tokens) == 1:
         # no args, ignore or sth
@@ -266,7 +266,7 @@ def show_stats_request(bot, update, user_data):
     else:
         mb_trackable_tokens, date_tokens = trackable_and_date_tokens(tokens)
         mb_trackable = ' '.join(mb_trackable_tokens)
-        if mb_trackable in user.trackable_name:
+        if mb_trackable in get_all_trackables(user_id_from_update(update)): # TODO:
             start_date, days_num = date_back(date_tokens[0], date_tokens[1])
             stats_request = {
                 "trackable": mb_trackable,
@@ -290,9 +290,7 @@ def save_stats_img(nums):
 #region report update sss
 
 def start_reporting(bot, update, user_data):
-    user = get_user_wrapper(user_id_from_update(update))
-    # user_data['trackables'] = get_all_trackables(user_id_from_update(update))
-    user_data['trackables'] = user.trackable_names;
+    user_data['trackables'] = get_all_trackables(user_id_from_update(update))
     if len(user_data['trackables']) > 0:
         update.message.reply_text("Oh, wonderful!")
         user_data['index_of_curr_trackable'] = 0
@@ -310,7 +308,7 @@ def ask_for_trackable_report(bot, update, user_data):
         update.message.reply_text("How is {} going?".format(trackable))
         return GET_TRACKABLE_REPORT
     else:
-        for trackable, val in user_data['report_data'].iteritems():
+        for trackable, val in user_data['report_data'].items():
             add_new_user_entry(user_id_from_update(update), trackable, val)
         update.message.reply_text("Thank your for your participation!")
         return ConversationHandler.END
@@ -326,7 +324,7 @@ def get_trackable_report(bot, update, user_data):
 
 
 def trackables_command(bot, update):
-    update.message.reply_text('\n'.join(get_user_wrapper(user_id_from_update(update)).trackable_names))
+    update.message.reply_text('\n'.join(get_all_trackables(user_id_from_update(update))))
 
 def done(bot, update, user_data):
     if 'choice' in user_data:
@@ -344,6 +342,7 @@ def error(bot, update, error):
 
 
 def main():
+    init()
 # Set these variable to the appropriate values
     TOKEN = "565922953:AAHLDSH9RcfKD2i9swjrgAL8_joW0ashCkU"
     NAME = "vast-citadel-21137"
@@ -410,13 +409,13 @@ def main():
     dp.add_error_handler(error)
 
     # # Start the Bot
-    # updater.start_polling()
+    updater.start_polling()
 
-    # Start the webhook
-    updater.start_webhook(listen="0.0.0.0",
-                          port=int(PORT),
-                          url_path=TOKEN)
-    updater.bot.setWebhook("https://{}.herokuapp.com/{}".format(NAME, TOKEN))
+    # # Start the webhook
+    # updater.start_webhook(listen="0.0.0.0",
+    #                       port=int(PORT),
+    #                       url_path=TOKEN)
+    # updater.bot.setWebhook("https://{}.herokuapp.com/{}".format(NAME, TOKEN))
     
 
     # Run the bot until you press Ctrl-C or the process receives SIGINT,
