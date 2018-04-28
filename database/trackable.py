@@ -109,7 +109,7 @@ def _trackable_coll_name(username, name):
     get's the collection identifier for the user's trackable, 
     distinct from all other user's trackables
     '''
-    return username + name
+    return '{0}--{1}'.format(username, name.replace(' ', '_'))
 
 def _get_trackable_metadata_doc(coll_name):
     return coll(coll_name).find_one(_metadata_query())

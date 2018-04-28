@@ -4,8 +4,8 @@
 '''
 
 from telegram.ext import ConversationHandler, CommandHandler, RegexHandler
-from .utils import user_id_from_update
 from database.users import get_user_wrapper
+from .utils import get_user
 
 ADD_PROP_NAME, ADD_LOWER_BOUND, ADD_UPPER_BOUND = range(3)
 
@@ -33,14 +33,19 @@ def add_trackable_conv():
         fallbacks=[RegexHandler('^Done$', _done, pass_user_data=True)]
     )
 
+def delete_trackable_command():
+    return CommandHandler('remove_trackable', _delete_trackable, pass_args=True)
+
+def _delete_trackable(bot, update, args):
+    print(args[0])
+    get_user(update).delete_trackable(args[0])
+
 
 def print_all_trackables(bot, update):
     print("printing all trackables")
-    update.message.reply_text('\n'.join(get_all_trackables(user_id_from_update(update))))
 
-def get_all_trackables(user_name):
-    user = get_user_wrapper(str(user_name))
-    return user.trackable_names
+    user = get_user(update)
+    update.message.reply_text('\n'.join(user.trackable_names))
 
 #region add trackable
 def _done():
@@ -70,13 +75,8 @@ def _prop_added(bot, update, user_data):
         " Then after a while, you can see statistics of {}!"
         .format(user_data['prop_name'], user_data['prop_name']))
 
-    user = get_user_wrapper(user_id_from_update(update))
+    user = get_user(update)
     user.register_trackable(user_data['prop_name'])
 
     return ConversationHandler.END
-#endregion
-
-#region add user entries
-
-
 #endregion
