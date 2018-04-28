@@ -1,16 +1,16 @@
-# import ..database.users as us
 from .trackable_test import run_all_trackable_tests
+from database.users import _get_users_col
 
 def test_all():
     run_all_trackable_tests()
     pass
 
-def users_test():
-    # _get_users_col().remove({})
+def drop_users():
+    _get_users_col().drop()
 
-    # print_all_users()
-    # print("{0}\n".format(new_us_wrapper))
+def drop_user_trackables(user, trackable):
+    pass
 
-    print("\n")
-    # print_all_users()
+def drop_trackable_entry():
+    pass
 

@@ -7,14 +7,15 @@ from pymongo.collection import Collection
 def init():
     '''
     run this before using this module any further
-    adds the uniqueness constraint on users field
+    adds the uniqueness constraint on users id field
     '''
-    _get_users_col().drop_indexes()
-    # _get_users_col().create_index( 'user_name', unique = False)
+    # _get_users_col().drop_indexes()
+    _get_users_col().create_index( 'id', unique = True)
 
-def add_new_user(user_name):
+def add_new_user(id, username):
     '''
     adds a new user doc {
+        id : id,
         name : user_name,
         trackables : [empty]
     } to db
@@ -22,7 +23,8 @@ def add_new_user(user_name):
     returns the UserDbWrapper obj for created user 
     '''
     new_user_doc = {
-        'name' : user_name,
+        'id' : id,
+        'name' : username,
         'trackables' : []
     }
 
@@ -31,22 +33,22 @@ def add_new_user(user_name):
 
     return UserDbWrapper(new_user_doc)
 
-def get_user_wrapper(user_name):
+def get_user_wrapper(id):
     '''
     returns the UserDbWrapper obj 
     returns None if no doc present
     '''
-    user_doc = _get_users_col().find_one({'name' : user_name})
+    user_doc = _get_users_col().find_one({'id' : id})
 
     return None if user_doc == None \
         else UserDbWrapper(user_doc)
     
-def user_registered(user_name):
+def user_registered(id):
     '''
     returns true if 1 or more user docs with user_name are present in db
     '''
-    assert _users_with_name(user_name) <= 1
-    return _users_with_name(user_name) == 1
+    assert _users_with_id(id) <= 1
+    return _users_with_id(id) == 1
 
 #endregion
 
@@ -57,6 +59,7 @@ class UserDbWrapper:
         self.name = doc['name']
         # string array - names of all the user's trackables 
         self.trackable_names = doc['trackables']
+        self.id = doc['id']
 
     def get_trackable_wrapper(self, name): 
         '''
@@ -99,8 +102,8 @@ class UserDbWrapper:
 def _get_users_col():
     return dc.CLIENT[dc.DATABASE_NAME][dc.USERS_COLL_NAME]
 
-def _users_with_name(user_name):
-    return _get_users_col().find({'name' : user_name}).count()
+def _users_with_id(id):
+    return _get_users_col().find({'id' : id}).count()
 #endregion
 
 

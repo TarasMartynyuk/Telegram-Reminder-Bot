@@ -1,5 +1,6 @@
 '''
-    module for adding new trackables and listing existing
+    module for adding new trackables, listing existing,
+    and adding new user entries to them 
 '''
 
 from telegram.ext import ConversationHandler, CommandHandler, RegexHandler
@@ -35,9 +36,9 @@ def add_trackable_conv():
 
 def print_all_trackables(bot, update):
     print("printing all trackables")
-    update.message.reply_text('\n'.join(_get_all_trackables(user_id_from_update(update))))
+    update.message.reply_text('\n'.join(get_all_trackables(user_id_from_update(update))))
 
-def _get_all_trackables(user_name):
+def get_all_trackables(user_name):
     user = get_user_wrapper(str(user_name))
     return user.trackable_names
 
@@ -73,4 +74,9 @@ def _prop_added(bot, update, user_data):
     user.register_trackable(user_data['prop_name'])
 
     return ConversationHandler.END
+#endregion
+
+#region add user entries
+
+
 #endregion

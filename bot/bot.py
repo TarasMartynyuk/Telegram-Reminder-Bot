@@ -23,7 +23,7 @@ import logging
 import re
 
 from database.users import get_user_wrapper, add_new_user, user_registered, init
-from .trackables import add_trackable_conv, print_all_trackables, _get_all_trackables
+from .trackables import add_trackable_conv, print_all_trackables, get_all_trackables
 from .utils import user_id_from_update
 
 # Enable logging
@@ -48,20 +48,6 @@ def add_new_user_entry(user_name, trackable_name, val):
     trackable = user.get_trackable_wrapper(trackable_name)
     trackable.add_user_entry(datetime.now(), val)
     return
-
-def get_trackable_metadata(user_name, trackable):
-    return {
-        "learning": {
-            "lower_bound": 1,
-            "upper_bound": 10,
-            "start_date": datetime.date(2010, 5, 24)
-        },
-        "reading": {
-            "lower_bound": 0,
-            "upper_bound": 0,
-            "start_date": datetime.date(2010, 5, 22)
-        }
-    }[trackable]
 
 def get_n_last_entries(user_name, trackable_name, n):
     user = get_user_wrapper(user_name)
@@ -113,16 +99,14 @@ def _start(bot, update):
     )
 
     user_id = user_id_from_update(update)
-    # if not user_exists(str(user_id)):
-    #     logger.info("user doesnt exist!!")
-    #     add_new_user(str(user_id))
+    user_id = update.message.chat.id
 
-    if not user_registered(str(user_id)):
+    if not user_registered(user_id):
         print("user doesnt exist!!")
-        add_new_user(str(user_id))
+        add_new_user(user_id, update.message.chat.username)
     else:
         print('user exists')
-    
+
 
     return CHOOSING
 
@@ -204,7 +188,7 @@ def show_stats_request(bot, update, user_data):
 #region report update sss
 
 def start_reporting(bot, update, user_data):
-    user_data['trackables'] = _get_all_trackables(user_id_from_update(update))
+    user_data['trackables'] = get_all_trackables(user_id_from_update(update))
     if len(user_data['trackables']) > 0:
         update.message.reply_text("Oh, wonderful!")
         user_data['index_of_curr_trackable'] = 0
@@ -212,7 +196,7 @@ def start_reporting(bot, update, user_data):
         return ask_for_trackable_report(bot, update, user_data)
     else:
         update.message.reply_text("You don't have any trackables yet. Create one by sending /add_trackable")
-        return CHOOSING
+        return GET_TRACKABLE_REPORT
 
 
 def ask_for_trackable_report(bot, update, user_data):
@@ -269,6 +253,8 @@ def start():
     dp.add_handler(CommandHandler('start', _start))
 
     dp.add_handler(add_trackable_conv())
+    dp.add_handler(CommandHandler('trackables', print_all_trackables))
+    
     
     start_reporting_conversation = ConversationHandler(
         entry_points=[CommandHandler('report', start_reporting, pass_user_data=True)],
@@ -283,17 +269,16 @@ def start():
     )
     dp.add_handler(start_reporting_conversation)
 
-    show_stats_conversation = ConversationHandler(
-        entry_points=[CommandHandler('stats', show_stats_request, pass_user_data=True)],
-        states={
+    # show_stats_conversation = ConversationHandler(
+    #     entry_points=[CommandHandler('stats', show_stats_request, pass_user_data=True)],
+    #     states={
 
-        },
-        fallbacks=[RegexHandler('^Done$', done, pass_user_data=True)]
-    )
-    dp.add_handler(show_stats_conversation)
+    #     },
+    #     fallbacks=[RegexHandler('^Done$', done, pass_user_data=True)]
+    # )
+    # dp.add_handler(show_stats_conversation)
 
-    dp.add_handler(CommandHandler('trackables', print_all_trackables))
-    dp.add_handler(CommandHandler('stats', show_stats_request, pass_user_data=True))
+    # dp.add_handler(CommandHandler('stats', show_stats_request, pass_user_data=True))
 
     # log all errors
     dp.add_error_handler(error)
