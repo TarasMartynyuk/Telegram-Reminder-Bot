@@ -22,3 +22,8 @@ def log_passed():
  
 def test_track_coll():
     return  coll(_trackable_coll_name(test_username, test_track_name))
+
+def datetime_within_period(date, p_start, p_end):
+    return date > p_start.date() and \
+            date < p_end.date()
+            

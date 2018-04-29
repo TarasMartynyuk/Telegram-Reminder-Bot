@@ -7,23 +7,29 @@ from telegram.ext import CommandHandler, ConversationHandler, MessageHandler
 filename_pr = 'chart'
 ext = '.png'
 
-def chart_filename_for_user(username, id):
+def _chart_filename_for_user(username, id):
     return '{0}_{1}_{2}{3}'.format(filename_pr, username, id, ext) 
 
+
 def stats_conversation():
-    return CommandHandler('stats', show_stats_request, pass_user_data=True)
+    return CommandHandler('stats', _show_stats_request, pass_user_data=True)
 
-def fill_missing_entries(entries):
-    pass
 
-def show_stats_table(update, req):
+def _show_stats_table(update, req):
     print ("show stats ")
     update.message.reply_text("Stats: from {} to {}".format(req['from'], req['to']))
 
     trackable = get_user(update).get_trackable_wrapper(req['trackable'])
     update.message.reply_text([d['value'] for d in trackable.get_user_entries(int(req['entry_n']))])
 
-def show_stats_request(bot, update, user_data):
+def _show_chart(req):
+    '''
+    '''
+    pass
+
+
+
+def _show_stats_request(bot, update, user_data):
     '''
     usage: /stats trackable_name number_of time_units
     '''
@@ -37,15 +43,15 @@ def show_stats_request(bot, update, user_data):
         mb_trackable_tokens, date_tokens = _trackable_and_date_tokens(tokens)
         mb_trackable = ' '.join(mb_trackable_tokens)
 
-        if get_user(update).trackable_registered(mb_trackable):
-            start_date, days_num = _date_back(date_tokens[0], date_tokens[1])
-            stats_request = {
-                "trackable": mb_trackable,
-                "from": start_date,
-                "to": datetime.now(),
-                "entry_n": days_num
-            }
-            show_stats_table(bot, stats_request)
+        user = get_user(update)
+        if user.trackable_registered(mb_trackable):
+            start_date, days_num = _start_date_from_user_input(date_tokens[0], date_tokens[1])
+            # stats_request = {
+            #     "trackable": mb_trackable,
+            #     "from": start_date,
+            #     "to": datetime.now(),
+            # }
+
         else:
             update.message.reply_text("there is no trackable {}".format(mb_trackable))
 
@@ -54,20 +60,20 @@ def show_stats_request(bot, update, user_data):
 
 #region helpers
 
-def get_entries_with_forgotten(start_date):
+def get_entries_with_forgotten(user, trackable, start_date):
     '''
     returns an arr of entries corresponding for the period
     between start_date and now
     if the user did not add an entry some day, the entry with value of 0 will be there
     '''
 
+    tr = user.get_trackable_wrapper(trackable)
+
+    entries_with_missing = tr.get_entries_for_period(start_date, datetime.utcnow())
+    
+
 
     pass
-
-def parse_stats_request():
-    pass
-
-
 
 def _trackable_and_date_tokens(tokens):
     if len(tokens) >= 2:
@@ -83,25 +89,22 @@ def _trackable_and_date_tokens(tokens):
     else:
         return None, None
 
-def _date_back(number_of, time_unit):
-    if time_unit == 'week':
-        return datetime.now() - timedelta(weeks=int(number_of)), number_of * 7
-    if time_unit == 'day':
-        return datetime.now() - timedelta(days=int(number_of)), number_of
-    if time_unit == 'month':
-        return datetime.now() - timedelta(months=int(number_of)), number_of * 30
-    if time_unit == 'year':
-        return datetime.now() - timedelta(months=12 * int( number_of)), number_of * 365
-    raise KeyError('{} is not day, week, etc.'.format(time_unit))
-
-def start_date_from_user_input(number_of, time_unit):
+def _start_date_from_user_input(number_of, time_unit):
     '''
     calculates the start date for the user requested period of time
     that period goes backwards from now(week ago etc)
 
-    returned obj is of type date
+    returned obj is of type datetime
     '''
-    pass
+    if time_unit == 'week':
+        return datetime.now() - timedelta(weeks=int(number_of))
+    if time_unit == 'day':
+        return datetime.now() - timedelta(days=int(number_of))
+    if time_unit == 'month':
+        return datetime.now() - timedelta(months=int(number_of))
+    if time_unit == 'year':
+        return datetime.now() - timedelta(months=12 * int( number_of))
+    raise KeyError('{} is not day, week, etc.'.format(time_unit))
 
 #endregion
 

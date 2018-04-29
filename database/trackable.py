@@ -25,7 +25,7 @@ class TrackableDbWrapper:
         if timestamp is None:
             return None
 
-        return datetime.fromtimestamp(timestamp)
+        return datetime.utcfromtimestamp(timestamp)
     
     def set_start_date(self, new_date):
         '''
@@ -79,8 +79,18 @@ class TrackableDbWrapper:
     #     '''
     #     pass
 
-    def entries_for_period(self, start_date, end_date):
-        pass
+    def get_entries_for_period(self, start_date, end_date):
+
+        if start_date.date() > end_date.date():
+            raise ValueError('end_date is earlier in time than start_date')
+        
+        docs_in_period = coll(self.coll_name).find({
+            '$and' : [
+                { 'date' : {'$gte' : start_date.timestamp()} },
+                { 'date' : {'$lte' : end_date.timestamp()} }
+            ]
+        })
+        return list(docs_in_period)
 
     def add_user_entry(self, date, value):
         '''
@@ -113,7 +123,7 @@ class TrackableDbWrapper:
             limit(n_last_to_take)
 
         return [{
-            'date' : datetime.fromtimestamp(entry['date']),
+            'date' : datetime.utcfromtimestamp(entry['date']),
             'value' : entry['value']
         } for entry in n_last ]
 

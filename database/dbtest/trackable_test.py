@@ -1,5 +1,5 @@
 from database.utils import DatabaseConsts as dc
-from datetime import datetime
+from datetime import datetime, timedelta
 from database.trackable import TrackableDbWrapper, _trackable_coll_name
 from database.utils import coll
 # from .dbprint import print_collection
@@ -7,23 +7,28 @@ from .utils import *
 
 
 def run_all_trackable_tests():
-    StartDate_ReturnsNone_IfNotSet()
-    StartDate_SetsValue_IfNotPresent()
-    StartDate_PutValue_EqOrig()
-    SetStartDate_Updates_PresentValue()
-    print("\n")
+    # StartDate_ReturnsNone_IfNotSet()
+    # StartDate_SetsValue_IfNotPresent()
+    # StartDate_PutValue_EqOrig()
+    # SetStartDate_Updates_PresentValue()
+    # print("\n")
 
-    GetBounds_ReturnsNone_IfNotSet()
-    SetBounds_SetsValues_IfNotPresent()
-    SetBounds_UpdatesValues_IfPresent()
-    Bounds_PutValue_EqOrig()
-    print("\n")
+    # GetBounds_ReturnsNone_IfNotSet()
+    # SetBounds_SetsValues_IfNotPresent()
+    # SetBounds_UpdatesValues_IfPresent()
+    # Bounds_PutValue_EqOrig()
+    # print("\n")
 
-    AddEntry_AddsNewDoc()
-    GetEntries_ReturnsAllNonMetadataDocs()
-    GetNLastEntries_ReturnsNResults()
-    GetNLastEntries_ResultSortedDescending()
-    AddEntry_ExistsDoc_WithArgValues()
+    # AddEntry_AddsNewDoc()
+    # GetEntries_ReturnsAllNonMetadataDocs()
+    # GetNLastEntries_ReturnsNResults()
+    # GetNLastEntries_ResultSortedDescending()
+    # AddEntry_ExistsDoc_WithArgValues()
+    # print("\n")
+
+    EntriesForPeriod_ReturnsEmptyList_IfNoDocumentsFound()    
+    EntriesForPeriod_ReturnsListWithLength_AtMaxNDaysInPeriod()
+    EntriesForPeriod_ReturnsOnlyDatesWithinPeriod()
 
 #region start_data
 def StartDate_ReturnsNone_IfNotSet():
@@ -180,16 +185,58 @@ def AddEntry_ExistsDoc_WithArgValues():
     } in tr.get_user_entries()
     log_passed()
 
-def EntriesForPeriod_ReturnsNone_IfNoDocumentsFound():
-    pass
+def EntriesForPeriod_ReturnsEmptyList_IfNoDocumentsFound():
+    set_up()
+    tr = track_test_instance()
+
+    very_old_date = datetime.utcnow() - timedelta(days=15)
+    after_very_old_date = datetime.utcnow() - timedelta(days=10)
+    
+    assert not tr.get_entries_for_period(
+        very_old_date, after_very_old_date)
+    log_passed()
+
+def EntriesForPeriod_ReturnsListWithLength_AtMaxNDaysInPeriod():
+    set_up()
+    tr = track_test_instance()
+
+    period_start = datetime.utcnow() - timedelta(days=10)
+    period_end = datetime.utcnow()
+
+    days_in_period = (period_end.date() - period_start.date()).days
+    print('days_in_period : {}'.format(days_in_period))
+
+    tr.add_user_entry(datetime.utcnow() - timedelta(days=5), 42)
+    tr.add_user_entry(datetime.utcnow() - timedelta(days=2), 42)
+    
+    assert len(tr.get_entries_for_period(
+        period_start, period_end)) <= days_in_period
+    log_passed()
+
+
+
 
 def EntriesForPeriod_ReturnsOnlyDatesWithinPeriod():
-    pass
+    set_up()
+    tr = track_test_instance()
 
-def EntriesForPeriod_ReturnsListLength_AtMaxNumberOfDaysInPeriod():
-    pass
+    period_start = datetime.utcnow() - timedelta(days=10)
+    period_end = datetime.utcnow()
+
+    tr.add_user_entry(datetime.utcnow() - timedelta(days=5), 42)
+    tr.add_user_entry(datetime.utcnow() - timedelta(days=2), 42)
+
+    entries = tr.get_entries_for_period(period_start, period_end)
+
+    assert all( datetime_within_period(entry['date'], period_start, period_end) \
+            for entry in entries)
+
+    log_passed()
+
 
 #endregion
+
+
 
 
 
