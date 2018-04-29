@@ -180,6 +180,15 @@ def AddEntry_ExistsDoc_WithArgValues():
     } in tr.get_user_entries()
     log_passed()
 
+def EntriesForPeriod_ReturnsNone_IfNoDocumentsFound():
+    pass
+
+def EntriesForPeriod_ReturnsOnlyDatesWithinPeriod():
+    pass
+
+def EntriesForPeriod_ReturnsListLength_AtMaxNumberOfDaysInPeriod():
+    pass
+
 #endregion
 
 

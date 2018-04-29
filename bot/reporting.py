@@ -1,6 +1,6 @@
 from telegram.ext import ConversationHandler, CommandHandler, MessageHandler
 from telegram.ext.filters import Filters
-from .utils import get_user
+from .utils import get_user, fallback_cb
 from datetime import datetime
 
 ASKING_FOR_REPORT = 0
@@ -15,11 +15,8 @@ def report_conversation():
                              pass_user_data=True)
             ]
         },
-        fallbacks=[MessageHandler(Filters.text, done, pass_user_data=True)]
+        fallbacks=[MessageHandler(Filters.text, fallback_cb, pass_user_data=True)]
     )
-
-def done():
-    print("done called")
 
 def start_reporting(bot, update, user_data):
     '''
@@ -100,7 +97,9 @@ def save_report(reports, user_wrapper):
     assert 'trackable' in reports[0] and 'report' in reports[0]
 
     print('saving reports : {}'.format(reports))
-    date_now = datetime.utcnow()
+
+    # from datetime import timedelta
+    date_now = datetime.utcnow() #+ timedelta(days=2)
 
     for rep in reports:
         user_wrapper.get_trackable_wrapper(rep['trackable']).   \

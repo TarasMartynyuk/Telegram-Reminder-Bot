@@ -68,8 +68,24 @@ class TrackableDbWrapper:
                 }
             })
     #endregion
+    # def todays_entry_exists(self):
+    #     latest_entry = coll(self.coll_name).find_one()
+
+
+    # def update_todays_entry(selft, date):
+    #     '''
+    #     updates the last(by date) user_entry doc 
+    #     in this trackable's collection
+    #     '''
+    #     pass
+
+    def entries_for_period(self, start_date, end_date):
+        pass
 
     def add_user_entry(self, date, value):
+        '''
+        adds new user_entry doc to collection
+        '''
 
         if not isinstance(date, datetime):
             raise TypeError('date must be a datetime')
@@ -100,8 +116,6 @@ class TrackableDbWrapper:
             'date' : datetime.fromtimestamp(entry['date']),
             'value' : entry['value']
         } for entry in n_last ]
-
-
 
 #region helpers
 def _trackable_coll_name(username, name):

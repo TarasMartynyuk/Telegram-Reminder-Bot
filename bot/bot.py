@@ -17,6 +17,7 @@ from database.users import get_user_wrapper, add_new_user, user_registered, init
 from .trackables import *
 from .reporting import report_conversation
 from .reminder import enable_reminders_command
+from .putaway_fornow import stats_conversation
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -34,9 +35,8 @@ def _start(bot, update):
         "Hi! This bot helps you track and measure your life. "
         "telegram To get started, send /add_trackable. If you want to get ideas "
         "what you can use this bot for, send /help."
-        # , reply_markup=markup
     )
-
+    
     user_id = update.message.chat.id
 
     if not user_registered(user_id):
@@ -44,15 +44,6 @@ def _start(bot, update):
         add_new_user(user_id, update.message.chat.username)
     else:
         print('user exists')
-
-def done(bot, update, user_data):
-    if 'choice' in user_data:
-        del user_data['choice']
-
-    update.message.reply_text("I learned these facts about you: ajajajajajaja")
-
-    user_data.clear()
-    return ConversationHandler.END
 
 def error(bot, update, error):
     """Log Errors caused by Updates."""
@@ -67,6 +58,8 @@ def start():
 
     # Port is given by Heroku
     PORT = os.environ.get('PORT')
+    print('bot start')
+    
 
     # Create the Updater and pass it your bot's token.
     # updater = Updater("552042340:AAHtT3JtHDySdLFr59-jkRNZUP_LSOB-WDE")
@@ -81,7 +74,9 @@ def start():
     
     dp.add_handler(report_conversation())
 
-    dp.add_handler(enable_reminders_command())
+    dp.add_handler(stats_conversation())
+
+    # dp.add_handler(enable_reminders_command())
 
     # log all errors
     dp.add_error_handler(error)
