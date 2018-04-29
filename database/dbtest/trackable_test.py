@@ -29,6 +29,8 @@ def run_all_trackable_tests():
     EntriesForPeriod_ReturnsEmptyList_IfNoDocumentsFound()    
     EntriesForPeriod_ReturnsListWithLength_AtMaxNDaysInPeriod()
     EntriesForPeriod_ReturnsOnlyDatesWithinPeriod()
+    EntriesForPeriod_ReturnsDatetimeIntDicts()
+    # print("\n")
 
 #region start_data
 def StartDate_ReturnsNone_IfNotSet():
@@ -204,7 +206,6 @@ def EntriesForPeriod_ReturnsListWithLength_AtMaxNDaysInPeriod():
     period_end = datetime.utcnow()
 
     days_in_period = (period_end.date() - period_start.date()).days
-    print('days_in_period : {}'.format(days_in_period))
 
     tr.add_user_entry(datetime.utcnow() - timedelta(days=5), 42)
     tr.add_user_entry(datetime.utcnow() - timedelta(days=2), 42)
@@ -228,12 +229,27 @@ def EntriesForPeriod_ReturnsOnlyDatesWithinPeriod():
 
     entries = tr.get_entries_for_period(period_start, period_end)
 
-    assert all( datetime_within_period(entry['date'], period_start, period_end) \
+    assert all( datetime_within_period(entry['date'].date(), period_start, period_end) \
             for entry in entries)
 
     log_passed()
 
+def EntriesForPeriod_ReturnsDatetimeIntDicts():
+    set_up()
+    tr = track_test_instance()
 
+    period_start = datetime.utcnow() - timedelta(days=10)
+    period_end = datetime.utcnow()
+
+    tr.add_user_entry(datetime.utcnow() - timedelta(days=5), 42)
+    tr.add_user_entry(datetime.utcnow() - timedelta(days=2), 42)
+
+    entries = tr.get_entries_for_period(period_start, period_end)
+
+    assert all(isinstance(mb_dict, dict) for mb_dict in entries)
+    assert all('date' in mb_dict and 'value' in mb_dict for mb_dict in entries)
+    log_passed()
+    
 #endregion
 
 

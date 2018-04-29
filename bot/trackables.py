@@ -55,7 +55,7 @@ def print_all_trackables(bot, update):
     user = get_user(update)
 
     reply_msg = '\n'.join(user.trackable_names) if user.trackable_names \
-        else 'You don\'t have anything to tracka yet. Add something via /add_trackable command'
+        else 'You don\'t have anything to track yet. Add something via the /add_trackable command'
     
     update.message.reply_text(reply_msg)
 

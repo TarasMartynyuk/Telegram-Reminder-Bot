@@ -89,8 +89,12 @@ class TrackableDbWrapper:
                 { 'date' : {'$gte' : start_date.timestamp()} },
                 { 'date' : {'$lte' : end_date.timestamp()} }
             ]
-        })
-        return list(docs_in_period)
+        }).sort([('date', pymongo.ASCENDING)])
+
+        return [{
+            'date' : datetime.utcfromtimestamp(entry['date']),
+            'value' : entry['value']
+        } for entry in docs_in_period ]
 
     def add_user_entry(self, date, value):
         '''

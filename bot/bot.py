@@ -17,7 +17,7 @@ from database.users import get_user_wrapper, add_new_user, user_registered, init
 from .trackables import *
 from .reporting import report_conversation
 from .reminder import enable_reminders_command
-from .putaway_fornow import stats_conversation
+from .stats import stats_conversation
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',

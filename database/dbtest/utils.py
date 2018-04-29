@@ -8,7 +8,7 @@ test_username = 'Test User'
 test_track_name = 'jogging'
 
 def set_up():
-    _get_users_col().remove({})
+    _get_users_col().remove({'name' : test_username})
     test_track_coll().remove({})
 
     new_us_wrapper = add_new_user(test_id, test_username)

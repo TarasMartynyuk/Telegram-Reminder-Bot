@@ -98,8 +98,8 @@ def save_report(reports, user_wrapper):
 
     print('saving reports : {}'.format(reports))
 
-    # from datetime import timedelta
-    date_now = datetime.utcnow() #+ timedelta(days=2)
+    from datetime import timedelta
+    date_now = datetime.utcnow() - timedelta(days=2)
 
     for rep in reports:
         user_wrapper.get_trackable_wrapper(rep['trackable']).   \
