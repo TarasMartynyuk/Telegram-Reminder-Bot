@@ -106,6 +106,26 @@ def _start_date_from_user_input(number_of, time_unit):
         return datetime.now() - timedelta(months=12 * int( number_of))
     raise KeyError('{} is not day, week, etc.'.format(time_unit))
 
+def save_chart_to_file(filename, entries, start_date, end_date):
+    # blahblah(entries, start_date, end_date)
+    # start_date, end_date are datetime.date objs
+    # len(entries) = (end_date - start_date).days + 1
+    # entries = [int...]
+    dates = [start_date + timedelta(days=i+1) for i in range((end_date - start_date).days +1 )]
+    fig, ax = plt.subplots()
+    width = 10
+    ax.bar(
+        [width*i for i in range(len(entries))],
+        entries,
+        width,
+        )
+    locations, labels = plt.xticks()
+    delta = len(entries) / len(labels)
+    labels = [(end_date - timedelta(days=i*delta)).strftime('%b %d') for i in reversed(range(len(labels)))]
+    plt.xticks(locations, labels)
+    plt.gcf().savefig(filename)
+
+
 #endregion
 
 
