@@ -1,8 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
-# Simple Bot to reply to Telegram messages
-# This program is dedicated to the public domain under the CC0 license.
 """
 This Bot uses the Updater class to handle the bot.
 First, a few callback functions are defined. Then, those functions are passed to
@@ -15,14 +11,12 @@ Press Ctrl-C on the command line or send a signal to the process to stop the
 bot.
 """
 import os
-from telegram import ReplyKeyboardMarkup
-from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters, RegexHandler,
-                          ConversationHandler)
+from telegram.ext import Updater, CommandHandler, ConversationHandler
 import logging
 from database.users import get_user_wrapper, add_new_user, user_registered, init
 from .trackables import *
 from .reporting import report_conversation
-from .utils import get_user
+from .reminder import enable_reminders_command
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -87,7 +81,7 @@ def start():
     
     dp.add_handler(report_conversation())
 
-
+    dp.add_handler(enable_reminders_command())
 
     # log all errors
     dp.add_error_handler(error)
@@ -100,9 +94,5 @@ def start():
     #                       port=int(PORT),
     #                       url_path=TOKEN)
     # updater.bot.setWebhook("https://{}.herokuapp.com/{}".format(NAME, TOKEN))
-
-    # Run the bot until you press Ctrl-C or the process receives SIGINT,
-    # SIGTERM or SIGABRT. This should be used most of the time, since
-    # start_polling() is non-blocking and will stop the bot gracefully.
     updater.idle()
 
