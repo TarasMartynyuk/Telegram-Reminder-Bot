@@ -2,6 +2,7 @@ import re
 from datetime import datetime, timedelta
 from .utils import get_user, fallback_cb
 from telegram.ext import CommandHandler, ConversationHandler, MessageHandler
+from matplotlib import pyplot as plt
 
 filename_pr = 'chart'
 ext = '.png'
@@ -19,13 +20,17 @@ def _show_stats_table(update, req):
     trackable = get_user(update).get_trackable_wrapper(req['trackable'])
     update.message.reply_text([d['value'] for d in trackable.get_user_entries(int(req['entry_n']))])
 
-def _show_chart(entries, start_date, end_date):
+def _show_chart(entries, start_date, end_date, bot, username, id):
     '''
     start_date and end_date are of type datetime.date
     '''
+    _save_chart_to_file(_chart_filename_for_user(username, id), 
+        entries, start_date, end_date)
 
-    print(str(entries))
-    pass
+    # print(str(entries))
+    bot.send_photo(chat_id=id,
+        photo=open(_chart_filename_for_user(username, id), 'rb'))
+
 
 def _show_stats_request(bot, update, user_data):
     '''
@@ -50,7 +55,7 @@ def _show_stats_request(bot, update, user_data):
                 get_entries_for_period(start_date, datetime.utcnow())
 
             _show_chart(_pick_values_fill_missing(entries_with_missing), 
-                start_date.date(), datetime.utcnow())
+                start_date.date(), datetime.utcnow().date(), bot, user.name, user.id)
         else:
             update.message.reply_text("there is no trackable {}".format(mb_trackable))
 
@@ -69,13 +74,13 @@ def _pick_values_fill_missing(entries):
 
     assert entries
 
-    print(str(entries))
+    # print(str(entries))
 
     start_date = entries[0]['date'].date()
     end_date = entries[len(entries) -1]['date'].date()
 
     days = (end_date - start_date).days
-    print('days: ' + str(days))
+    # print('days: ' + str(days))
 
     period_vals = []
     entry_index = 0
@@ -84,11 +89,11 @@ def _pick_values_fill_missing(entries):
     for i in range(days + 1):
         assert entry_index < len(entries)
 
-        print('iter : {}, entries date: {},\ncurr_day_date : {}'.format(
-            i, entries[entry_index]['date'].date(), curr_day_date))
+        # print('iter : {}, entries date: {},\ncurr_day_date : {}'.format(
+        #     i, entries[entry_index]['date'].date(), curr_day_date))
 
         if entries[entry_index]['date'].date() == curr_day_date:
-            period_vals.append(entries[entry_index]['value'])
+            period_vals.append(int(entries[entry_index]['value']))
             entry_index += 1
         else:
             period_vals.append(0)
@@ -129,12 +134,13 @@ def _start_date_from_user_input(number_of, time_unit):
         # return datetime.now() - timedelta(months=12 * int( number_of))
     raise KeyError('{} is not day, week, etc.'.format(time_unit))
 
-
-def save_chart_to_file(filename, entries, start_date, end_date):
-    # blahblah(entries, start_date, end_date)
+def _save_chart_to_file(filename, entries, start_date, end_date):
     # start_date, end_date are datetime.date objs
     # len(entries) = (end_date - start_date).days + 1
     # entries = [int...]
+
+    print('entries: ' + str(entries))
+
     dates = [start_date + timedelta(days=i+1) for i in range((end_date - start_date).days +1 )]
     fig, ax = plt.subplots()
     width = 10
