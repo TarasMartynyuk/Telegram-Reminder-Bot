@@ -1,5 +1,6 @@
 from database.utils import DatabaseConsts as dc, coll
 from pymongo.collection import Collection
+from database.users import get_user_wrapper
 
 def print_all_colls():
     db = dc.CLIENT[dc.DATABASE_NAME]
@@ -13,7 +14,9 @@ def print_all_colls():
 def print_all_users():
     _print_collection(dc.CLIENT[dc.DATABASE_NAME][dc.USERS_COLL_NAME])
 
-def print_all_trackable_entries(user):
+def print_all_trackable_entries(id):
+
+    user = get_user_wrapper(id)
     print('User : {0}: '.format(user.name))
 
     for tr in user.trackable_names:

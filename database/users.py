@@ -95,7 +95,15 @@ class UserDbWrapper:
             raise ValueError('trackable must be registered')
 
         drop_trackable_collection(self.name, name)
+
         self.trackable_names.remove(name)
+        _get_users_col().update_one({
+            'id' : self.id
+            }, {
+                '$set' : {
+                    'trackables' : self.trackable_names
+                }
+            })
 
 #region helpers
 

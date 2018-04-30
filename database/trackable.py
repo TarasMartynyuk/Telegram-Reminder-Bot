@@ -3,8 +3,11 @@ import pymongo
 from pymongo.collection import Collection 
 from datetime import datetime
 
-def drop_trackable_collection(username, trackable_name):
-    coll(_trackable_coll_name(username, trackable_name)).drop()
+def drop_trackable_collection(id, trackable):
+    '''
+    username is not id, it is the human-readable telegram username!
+    '''
+    coll(_trackable_coll_name(id, trackable)).drop()
 
 class TrackableDbWrapper:
 
@@ -132,12 +135,12 @@ class TrackableDbWrapper:
         } for entry in n_last ]
 
 #region helpers
-def _trackable_coll_name(username, name):
+def _trackable_coll_name(id, name):
     '''
     get's the collection identifier for the user's trackable, 
     distinct from all other user's trackables
     '''
-    return '{0}--{1}'.format(username, name.replace(' ', '_'))
+    return '{0}--{1}'.format(id, name.replace(' ', '_'))
 
 def _get_trackable_metadata_doc(coll_name):
     return coll(coll_name).find_one(_metadata_query())
