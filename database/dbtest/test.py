@@ -19,7 +19,10 @@ def drop_db():
 
 
 def pretend_to_remind(bot):
-    demo_user_id = 1
+    '''
+    sends a reminder to a user whose chat_id hardcoded value below
+    '''
+    demo_user_id = 424710868,
 
     bot.send_message(chat_id=demo_user_id, text='Hey! It\'s time to tell me how you did today')
     pass

@@ -84,6 +84,9 @@ def start():
     # # Start the Bot
     updater.start_polling()
 
+
+    from database.dbtest.test import pretend_to_remind
+    pretend_to_remind(updater.bot)
     # # Start the webhook
     # updater.start_webhook(listen="0.0.0.0",
     #                       port=int(PORT),
