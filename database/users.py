@@ -77,6 +77,9 @@ class UserDbWrapper:
         '''
         adds the name to self.trackables, and writes it to the db user doc
         '''
+        if self.trackable_registered(name):
+            raise ValueError('trackable already registered')
+
         self.trackable_names.append(name)
         _get_users_col().update_one({
             'name' : self.name}, {

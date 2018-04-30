@@ -41,7 +41,9 @@ def put_sample_data(user_id, trackable):
 
     vals = [35, 25, 28, 33, 42, 44, 46]
     
-    user.register_trackable(trackable)
+    if not user.trackable_registered(trackable):
+        user.register_trackable(trackable)
+    
     tr = user.get_trackable_wrapper(trackable)
 
     from database.utils import DatabaseConsts as dc
