@@ -86,7 +86,7 @@ def start():
 
 
     from database.dbtest.test import pretend_to_remind
-    pretend_to_remind(updater.bot)
+    # pretend_to_remind(updater.bot, chat_id) put chat id there
     # # Start the webhook
     # updater.start_webhook(listen="0.0.0.0",
     #                       port=int(PORT),

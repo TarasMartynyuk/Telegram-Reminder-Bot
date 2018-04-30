@@ -101,8 +101,11 @@ def save_report(reports, user_wrapper):
     date_now = datetime.utcnow()
 
     for rep in reports:
-        user_wrapper.get_trackable_wrapper(rep['trackable']).   \
-            add_user_entry(date_now, rep['report'])
+        if rep['trackable'] != 'playing with my cat':
+            user_wrapper.get_trackable_wrapper(rep['trackable']).   \
+                add_user_entry(date_now, rep['report'])
+        else:
+            print('ignoring cats')
 
 def clear_user_data(user_data):
     del user_data['reports']

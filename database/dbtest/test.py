@@ -18,11 +18,11 @@ def drop_db():
     dc.CLIENT.drop_database(dc.DATABASE_NAME)
 
 
-def pretend_to_remind(bot):
+def pretend_to_remind(bot, chat_id):
     '''
     sends a reminder to a user whose chat_id hardcoded value below
     '''
-    demo_user_id = 424710868,
+    demo_user_id = chat_id
 
     bot.send_message(chat_id=demo_user_id, text='Hey! It\'s time to tell me how you did today')
     pass
