@@ -1,15 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-This Bot uses the Updater class to handle the bot.
-First, a few callback functions are defined. Then, those functions are passed to
-the Dispatcher and registered at their respective places.
-Then, the bot is started and runs until we press Ctrl-C on the command line.
-Usage:
-Example of a bot-user conversation using ConversationHandler.
-Send /start to initiate the conversation.
-Press Ctrl-C on the command line or send a signal to the process to stop the
-bot.
-"""
 import os
 from telegram.ext import Updater, CommandHandler, ConversationHandler
 import logging
@@ -86,11 +75,5 @@ def start():
 
 
     from database.dbtest.test import pretend_to_remind
-    # pretend_to_remind(updater.bot, chat_id) put chat id there
-    # # Start the webhook
-    # updater.start_webhook(listen="0.0.0.0",
-    #                       port=int(PORT),
-    #                       url_path=TOKEN)
-    # updater.bot.setWebhook("https://{}.herokuapp.com/{}".format(NAME, TOKEN))
     updater.idle()
 

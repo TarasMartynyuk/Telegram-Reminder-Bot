@@ -27,7 +27,6 @@ def _show_chart(entries, start_date, end_date, bot, username, id):
     _save_chart_to_file(_chart_filename_for_user(username, id), 
         entries, start_date, end_date)
 
-    # print(str(entries))
     bot.send_photo(chat_id=id,
         photo=open(_chart_filename_for_user(username, id), 'rb'))
 
